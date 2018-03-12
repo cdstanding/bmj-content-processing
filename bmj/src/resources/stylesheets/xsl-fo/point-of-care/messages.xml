@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<messages>
+	<locale value="en-gb">
+		<first-page>
+			<subtitle>The right clinical information, right where it's needed
+			</subtitle>
+		</first-page>
+	</locale>
+	<locale value="es-es">
+		<first-page>
+			<subtitle>La información clínica correcta, justo donde se necesita
+			</subtitle>
+		</first-page>
+	</locale>
+	<locale value="pt-br">
+		<first-page>
+			<subtitle>A informação clínica direita, direita onde for necessário
+			</subtitle>
+		</first-page>
+	</locale>
+</messages>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pages monograph_type="generic">
+  <page label="summary.overview">
+  	<retrieval-xquery>
+  		<body>
+              <![CDATA[
+                /monograph-generic/sections
+              ]]>
+  		</body>
+  	</retrieval-xquery>
+  	<presence-xquery>
+  		<body>
+              <![CDATA[
+                /monograph-generic/sections
+              ]]>
+  		</body>
+  	</presence-xquery>
+  </page>
+  
+  <page label="resources.references">
+    <retrieval-xquery xqref="resources.references.retrieval" />
+    <presence-xquery xqref="resources.references.presence" />
+  </page>
+  
+  <page label="resources.reference.bp">
+    <retrieval-xquery xqref="resources.reference.bp" />
+    <presence-xquery />
+  </page>
+	
+  <page label="resources.images">
+    <retrieval-xquery xqref="resources.images" />
+    <presence-xquery xqref="resources.images.presence" />
+  </page>
+  
+  <page label="resources.images.print">
+    <retrieval-xquery xqref="resources.images.print" />
+    <presence-xquery />
+  </page>
+  
+  <page label="resources.image.bp">
+    <retrieval-xquery xqref="resources.image.bp" />
+    <presence-xquery />
+  </page>
+  
+  <page label="resources.online-resources">
+    <retrieval-xquery xqref="resources.online-resources" />
+    <presence-xquery xqref="resources.online-resources" />
+  </page>
+
+  <page label="resources.patient-leaflets">
+    <retrieval-xquery xqref="resources.patient-leaflets" />
+    <presence-xquery xqref="resources.patient-leaflets" />
+  </page>
+  
+  <page label="resources.credits">
+    <retrieval-xquery xqref="resources.credits.retrieval" />
+    <presence-xquery xqref="resources.credits.presence" />
+  </page>
+  
+  <!-- 
+    For evidence XQueries see xqueries/systematic-review-xqueries.xml
+    -->
+    
+  <page label="treatment.evidence">
+    <retrieval-xquery xqref="systematic-reviews.questions.retrieval"/>
+    <presence-xquery xqref="systematic-reviews.questions.presence"/>
+  </page>
+  <page label="treatment.evidence.question">
+    <retrieval-xquery xqref="systematic-review.question" />
+    <presence-xquery />
+  </page>
+  <page label="treatment.evidence.intervention">
+    <retrieval-xquery xqref="systematic-review.intervention"/>
+    <presence-xquery />
+  </page>
+  <page label="treatment.evidence.table">
+    <retrieval-xquery xqref="systematic-review.table"/>
+    <presence-xquery />
+  </page>
+  <page label="treatment.evidence.glossary">
+    <retrieval-xquery xqref="systematic-review.glossary"/>
+    <presence-xquery />
+  </page>
+  <page label="treatment.evidence.key-points">
+    <retrieval-xquery xqref="systematic-review.key-points"/>
+    <presence-xquery />
+  </page>
+  <page label="treatment.evidence.background">
+    <retrieval-xquery xqref="systematic-review.background"/>
+    <presence-xquery />
+  </page>
+
+
+  <page label="treatment.evidence.score">
+    <retrieval-xquery xqref="treatment.evidence.score" />
+    <presence-xquery />
+  </page>
+  <page label="treatment.evidence.scorepopup">
+    <retrieval-xquery xqref="treatment.evidence.score" />
+    <presence-xquery />
+  </page>
+
+  <page label="treatment.evidence.references">
+    <retrieval-xquery xqref="systematic-review.references"/>
+    <presence-xquery/>
+  </page>
+  <page label="treatment.evidence.reference">
+    <retrieval-xquery xqref="systematic-review.reference"/>
+    <presence-xquery />
+  </page>
+</pages>

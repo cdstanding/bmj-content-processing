@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pages monograph_type="standard">
+  <page label="basics.etiology">
+    <retrieval-xquery>
+      <body>
+        <![CDATA[
+            /monograph-full/basics/etiology
+        ]]>
+      </body>
+    </retrieval-xquery>
+    <presence-xquery>
+      <body>
+        <![CDATA[
+            /monograph-full/basics/etiology  
+        ]]>
+      </body>
+    </presence-xquery>
+  </page>
+</pages>

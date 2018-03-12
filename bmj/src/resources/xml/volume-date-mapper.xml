@@ -1,0 +1,346 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- Date range mapping for volume changes -->
+<volume-date-ranges>
+    <year year="2017">
+        <month month="01">
+            <volume>356</volume>
+        </month>
+        <month month="02">
+            <volume>356</volume>
+        </month>
+        <month month="03">
+            <volume>356</volume>
+        </month>
+        <month month="04">
+            <volume>357</volume>
+        </month>
+        <month month="05">
+            <volume>357</volume>
+        </month>
+        <month month="06">
+            <volume>357</volume>
+        </month>
+        <month month="07">
+            <volume>358</volume>
+        </month>
+        <month month="08">
+            <volume>358</volume>
+        </month>
+        <month month="09">
+            <volume>358</volume>
+        </month>
+        <month month="10">
+            <volume>359</volume>
+        </month>
+        <month month="11">
+            <volume>359</volume>
+        </month>
+        <month month="12">
+            <volume>359</volume>
+        </month>
+    </year>
+    <year year="2018">
+        <month month="01">
+            <volume>360</volume>
+        </month>
+        <month month="02">
+            <volume>360</volume>
+        </month>
+        <month month="03">
+            <volume>360</volume>
+        </month>
+        <month month="04">
+            <volume>361</volume>
+        </month>
+        <month month="05">
+            <volume>361</volume>
+        </month>
+        <month month="06">
+            <volume>361</volume>
+        </month>
+        <month month="07">
+            <volume>362</volume>
+        </month>
+        <month month="08">
+            <volume>362</volume>
+        </month>
+        <month month="09">
+            <volume>362</volume>
+        </month>
+        <month month="10">
+            <volume>363</volume>
+        </month>
+        <month month="11">
+            <volume>363</volume>
+        </month>
+        <month month="12">
+            <volume>363</volume>
+        </month>
+    </year>
+    <year year="2019">
+        <month month="01">
+            <volume>364</volume>
+        </month>
+        <month month="02">
+            <volume>364</volume>
+        </month>
+        <month month="03">
+            <volume>364</volume>
+        </month>
+        <month month="04">
+            <volume>365</volume>
+        </month>
+        <month month="05">
+            <volume>365</volume>
+        </month>
+        <month month="06">
+            <volume>365</volume>
+        </month>
+        <month month="07">
+            <volume>366</volume>
+        </month>
+        <month month="08">
+            <volume>366</volume>
+        </month>
+        <month month="09">
+            <volume>366</volume>
+        </month>
+        <month month="10">
+            <volume>367</volume>
+        </month>
+        <month month="11">
+            <volume>367</volume>
+        </month>
+        <month month="12">
+            <volume>367</volume>
+        </month>
+    </year>
+    <year year="2020">
+        <month month="01">
+            <volume>368</volume>
+        </month>
+        <month month="02">
+            <volume>368</volume>
+        </month>
+        <month month="03">
+            <volume>368</volume>
+        </month>
+        <month month="04">
+            <volume>369</volume>
+        </month>
+        <month month="05">
+            <volume>369</volume>
+        </month>
+        <month month="06">
+            <volume>369</volume>
+        </month>
+        <month month="07">
+            <volume>370</volume>
+        </month>
+        <month month="08">
+            <volume>370</volume>
+        </month>
+        <month month="09">
+            <volume>370</volume>
+        </month>
+        <month month="10">
+            <volume>371</volume>
+        </month>
+        <month month="11">
+            <volume>371</volume>
+        </month>
+        <month month="12">
+            <volume>371</volume>
+        </month>
+    </year>
+    <year year="2021">
+        <month month="01">
+            <volume>372</volume>
+        </month>
+        <month month="02">
+            <volume>372</volume>
+        </month>
+        <month month="03">
+            <volume>372</volume>
+        </month>
+        <month month="04">
+            <volume>373</volume>
+        </month>
+        <month month="05">
+            <volume>373</volume>
+        </month>
+        <month month="06">
+            <volume>373</volume>
+        </month>
+        <month month="07">
+            <volume>374</volume>
+        </month>
+        <month month="08">
+            <volume>374</volume>
+        </month>
+        <month month="09">
+            <volume>374</volume>
+        </month>
+        <month month="10">
+            <volume>375</volume>
+        </month>
+        <month month="11">
+            <volume>375</volume>
+        </month>
+        <month month="12">
+            <volume>375</volume>
+        </month>
+    </year>
+    <year year="2022">
+        <month month="01">
+            <volume>376</volume>
+        </month>
+        <month month="02">
+            <volume>376</volume>
+        </month>
+        <month month="03">
+            <volume>376</volume>
+        </month>
+        <month month="04">
+            <volume>377</volume>
+        </month>
+        <month month="05">
+            <volume>377</volume>
+        </month>
+        <month month="06">
+            <volume>377</volume>
+        </month>
+        <month month="07">
+            <volume>378</volume>
+        </month>
+        <month month="08">
+            <volume>378</volume>
+        </month>
+        <month month="09">
+            <volume>378</volume>
+        </month>
+        <month month="10">
+            <volume>379</volume>
+        </month>
+        <month month="11">
+            <volume>379</volume>
+        </month>
+        <month month="12">
+            <volume>379</volume>
+        </month>
+    </year>
+    <year year="2023">
+        <month month="01">
+            <volume>380</volume>
+        </month>
+        <month month="02">
+            <volume>380</volume>
+        </month>
+        <month month="03">
+            <volume>380</volume>
+        </month>
+        <month month="04">
+            <volume>381</volume>
+        </month>
+        <month month="05">
+            <volume>381</volume>
+        </month>
+        <month month="06">
+            <volume>381</volume>
+        </month>
+        <month month="07">
+            <volume>382</volume>
+        </month>
+        <month month="08">
+            <volume>382</volume>
+        </month>
+        <month month="09">
+            <volume>382</volume>
+        </month>
+        <month month="10">
+            <volume>383</volume>
+        </month>
+        <month month="11">
+            <volume>383</volume>
+        </month>
+        <month month="12">
+            <volume>383</volume>
+        </month>
+    </year>
+    <year year="2024">
+        <month month="01">
+            <volume>384</volume>
+        </month>
+        <month month="02">
+            <volume>384</volume>
+        </month>
+        <month month="03">
+            <volume>384</volume>
+        </month>
+        <month month="04">
+            <volume>385</volume>
+        </month>
+        <month month="05">
+            <volume>385</volume>
+        </month>
+        <month month="06">
+            <volume>385</volume>
+        </month>
+        <month month="07">
+            <volume>386</volume>
+        </month>
+        <month month="08">
+            <volume>386</volume>
+        </month>
+        <month month="09">
+            <volume>386</volume>
+        </month>
+        <month month="10">
+            <volume>387</volume>
+        </month>
+        <month month="11">
+            <volume>387</volume>
+        </month>
+        <month month="12">
+            <volume>387</volume>
+        </month>
+    </year>
+    <year year="2025">
+        <month month="01">
+            <volume>388</volume>
+        </month>
+        <month month="02">
+            <volume>388</volume>
+        </month>
+        <month month="03">
+            <volume>388</volume>
+        </month>
+        <month month="04">
+            <volume>389</volume>
+        </month>
+        <month month="05">
+            <volume>389</volume>
+        </month>
+        <month month="06">
+            <volume>389</volume>
+        </month>
+        <month month="07">
+            <volume>390</volume>
+        </month>
+        <month month="08">
+            <volume>390</volume>
+        </month>
+        <month month="09">
+            <volume>390</volume>
+        </month>
+        <month month="10">
+            <volume>391</volume>
+        </month>
+        <month month="11">
+            <volume>391</volume>
+        </month>
+        <month month="12">
+            <volume>391</volume>
+        </month>
+    </year>
+</volume-date-ranges>

@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+<docato:Publication xmlns:docato="http://com.docato.databinding">
+    <docato:Name>sbmj-to-webapp</docato:Name>
+    <docato:TopResourceURI/>
+    <docato:StyleSheetURI/>
+    <docato:FailOnMissingLinkTargets>false</docato:FailOnMissingLinkTargets>
+    <docato:ExportUnspecifiedAttributes>false</docato:ExportUnspecifiedAttributes>
+    <docato:ExportWithExpandedEntities>false</docato:ExportWithExpandedEntities>
+    <docato:ExportRawAttributeValues>false</docato:ExportRawAttributeValues>
+    <docato:ExportHandlerClassName>com.bmj.composer.util.FileMonitorExportHandler</docato:ExportHandlerClassName>
+    <docato:BuildHandlerClassName/>
+    <docato:ReuseHandling>0</docato:ReuseHandling>
+    <docato:PublicationType>ANT_SCRIPT_BASED</docato:PublicationType>
+    <docato:ExportMMOResources>true</docato:ExportMMOResources>
+    <docato:ExportMetadata>false</docato:ExportMetadata>
+    <docato:SnapshotDate/>
+    <docato:ExportLinkedXMLResources>false</docato:ExportLinkedXMLResources>
+    <docato:ExportCrossReferencedResources>true</docato:ExportCrossReferencedResources>
+    <docato:MaxMessages>-1</docato:MaxMessages>
+    <docato:LogErr>true</docato:LogErr>
+    <docato:LogWarn>true</docato:LogWarn>
+    <docato:LogInfo>true</docato:LogInfo>
+    <docato:LogVerbose>false</docato:LogVerbose>
+    <docato:LogDebug>false</docato:LogDebug>
+    <docato:MessageHandlerClassName/>
+    <docato:GeneratedPublicationsInDatabase>false</docato:GeneratedPublicationsInDatabase>
+    <docato:ReadOnly>true</docato:ReadOnly>
+    <docato:DistributionSpecifiedDir/>
+    <docato:DistributionEmail/>
+    <docato:DistributionRemoteServerProtocol/>
+    <docato:DistributionRemoteServerHost/>
+    <docato:DistributionRemoteServerUsername/>
+    <docato:DistributionRemoteServerPassword/>
+    <docato:DistributionRemoteServerTargetDir/>
+    <docato:DistributionRemoteServerZip>false</docato:DistributionRemoteServerZip>
+    <docato:PDFFormatter/>
+    <docato:TransformerFactory>Saxon</docato:TransformerFactory>
+    <docato:AntScript>
+        <project default="docato-publish">
+            <!--            sbmj-to-webapp publication-->
+            <!-- define external property files -->
+            <import
+                file="${docato.basedir}${file.separator}deploy${file.separator}docato-composer${file.separator}WEB-INF${file.separator}ant-publication-shared-config.xml"/>
+            <!--     <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${docato.basedir}${file.separator}apache-ant${file.separator}lib${file.separator}ant-contrib-1.0b3.jar"/>
+                 <property file="${docato.basedir}${file.separator}deploy${file.separator}docato-composer${file.separator}WEB-INF${file.separator}bmjk-project.properties"/>
+            -->
+            <property name="watch.output.dir"
+                value="${docato.basedir}../bmjk/cms-preview-xml/file-watcher/output"/>
+            <target name="docato-publish">
+                <!-- set properties -->
+                <tstamp prefix="start"/>
+                <property name="exportdir"
+                    value="${docato.exportdir}${file.separator}sbmj_to_webapp_${start.DSTAMP}_${start.TSTAMP}"/>
+                <property name="output.format" value="jpg"/>
+                <property name="output.density" value="600x600"/>
+                <mkdir dir="${exportdir}"/>
+                <!-- create a graphics directory here for the output of any graphics -->
+                <mkdir dir="${exportdir}${file.separator}graphics"/>
+                <!-- create a tmp directory here for the output of any xslt -->
+                <mkdir dir="${exportdir}${file.separator}tmp"/>
+                <!--          <mkdir dir="${exportdir}${file.separator}tmp/sbmj/editorials"/>
+                      <mkdir dir="${exportdir}${file.separator}tmp/sbmj/education"/>
+                      <mkdir dir="${exportdir}${file.separator}tmp/sbmj/letters"/>
+                      <mkdir dir="${exportdir}${file.separator}tmp/sbmj/life"/>
+                      <mkdir dir="${exportdir}${file.separator}tmp/sbmj/minerva"/>
+                      <mkdir dir="${exportdir}${file.separator}tmp/sbmj/news"/>
+                      <mkdir dir="${exportdir}${file.separator}tmp/sbmj/papers"/>
+                      <mkdir dir="${exportdir}${file.separator}tmp/sbmj/reviews"/>
+                      <mkdir dir="${exportdir}${file.separator}tmp/sbmj/shortcuts"/>-->
+                <!-- copy docato temp xml resources to publish folder -->
+                <copy todir="${exportdir}">
+                    <fileset dir="${docato.tempdir}" includes="**/*.xml"/>
+                </copy>
+                <!--copy graphics to export directory-->
+                <copy todir="${exportdir}">
+                    <fileset dir="${docato.tempdir}">
+                        <include name="**${file.separator}*.gif"/>
+                        <include name="**${file.separator}*.eps"/>
+                        <include name="**${file.separator}*.tif"/>
+                        <include name="**${file.separator}*.jpg"/>
+                        <include name="**${file.separator}*.png"/>
+                    </fileset>
+                </copy>
+                <!--Convert graphics for web site-->
+                <echo message="Now running graphics conversion with ImageMagick"/>
+                <runtarget target="convert-graphics-batch"/>
+                <taskdef classname="com.docato.anttasks.publication.GetTempPathTask"
+                    name="getTempPath"/>
+                <!-- bmj xml to nlm xml -->
+                <getTempPath name="export-sbmj-webapp-stylesheet"
+                    var="export-sbmj-webapp-stylesheet"/>
+                <xslt basedir="${exportdir}" destdir="${exportdir}${file.separator}tmp"
+                    extension=".xml" force="yes" processor="trax"
+                    style="${export-sbmj-webapp-stylesheet}">
+                    <include name="**/*.xml"/>
+                </xslt>
+                <!--copy transfromed xml and graphics to webapp input directory-->
+                <copy todir="${watch.output.dir}">
+                    <fileset dir="${exportdir}">
+                        <include name="graphics${file.separator}*.${output.format}"/>
+                    </fileset>
+                </copy>
+                <copy todir="${watch.output.dir}">
+                    <fileset dir="${exportdir}${file.separator}tmp">
+                        <include name="**/*.xml"/>
+                    </fileset>
+                </copy>
+                <!--  For publishing SBMJ content to STUDENT and XML STORE  -->
+                <!-- 1. transfer images to Student website-->
+                <scp failonerror="true" password="${scp.student.live.pass}"
+                    todir="${scp.student.live.user}@${scp.student.live.server}:${scp.student.live.remotedir.images}"
+                    trust="true" verbose="true">
+                    <fileset dir="${exportdir}${file.separator}graphics">
+                        <include name="*.*"/>
+                    </fileset>
+                </scp>
+                <scp failonerror="true" password="${scp.student.live.pass}"
+                    todir="${scp.student.live.user}@${scp.student.live.server.two}:${scp.student.live.remotedir.images}"
+                    trust="true" verbose="true">
+                    <fileset dir="${exportdir}${file.separator}graphics">
+                        <include name="*.*"/>
+                    </fileset>
+                </scp>
+                <scp failonerror="true" password="${scp.student.live.pass}"
+                    todir="${scp.student.live.user}@${scp.student.live.server.three}:${scp.student.live.remotedir.images}"
+                    trust="true" verbose="true">
+                    <fileset dir="${exportdir}${file.separator}graphics">
+                        <include name="*.*"/>
+                    </fileset>
+                </scp>
+                <!-- transfer all xml to be uploaded in sbmj unique temp folder-->
+                <tstamp/>
+                <property name="sbmjFolder" value="student-${DSTAMP}${TSTAMP}"/>
+                <mkdir dir="${exportdir}${file.separator}${sbmjFolder}"/>
+                <copy flatten="true" todir="${exportdir}${file.separator}${sbmjFolder}">
+                    <fileset dir="${exportdir}${file.separator}tmp">
+                        <include name="**/*.xml"/>
+                    </fileset>
+                </copy>
+                <!-- 2. transfer all to XML Store remote xml directory -->
+                <scp failonerror="true" password="${scp.xmlstore.live.pass}" sftp="true"
+                    todir="${scp.xmlstore.live.user}@${scp.xmlstore.live.server}:${scp.xmlstore.live.remotedir.xml}"
+                    trust="true" verbose="true">
+                    <fileset dir="${exportdir}">
+                        <include name="${sbmjFolder}${file.separator}*.xml"/>
+                    </fileset>
+                </scp>
+                <property location="${watch.output.dir}/response" name="get-response"/>
+                <!-- 3. send upload request to XML Store-->
+                <!--      call xml store load url to advise files arrived and ready for upload-->
+                <get dest="${get-response}/xmlstore-response.txt"
+                    src="${xmlstore.url}/${sbmjFolder}/student/loadData.html"/>
+                <!-- 4. send update request to Student  -->
+                <!--      call student article update url to advise files arrived -->
+                <for param="file">
+                    <path>
+                        <fileset dir="${exportdir}${file.separator}${sbmjFolder}" includes="*.xml"/>
+                    </path>
+                    <sequential>
+                        <basename file="@{file}" property="filename" suffix=".xml"/>
+                        <get dest="${get-response}/student-response.txt"
+                            src="${student.updateurl}?id=${filename}"
+                            username="${student.updateurl.user}"
+                            password="${student.updateurl.pass}"/>
+                    </sequential>
+                </for>
+                <!-- housekeeping -->
+                <delete includeemptydirs="true" verbose="true">
+                    <fileset dir="${exportdir}"/>
+                </delete>
+            </target>
+            <target description="Convert graphics for  web site using imagemagick"
+                name="convert-graphics-batch">
+                <echo message="Working on ${exportdir}${file.separator}graphics"/>
+                <property name="files.wildcard"
+                    value="${exportdir}${file.separator}graphics${file.separator}*.*"/>
+                <apply executable="${imagemagick.dir}${file.separator}mogrify" failonerror="true"
+                    force="true" verbose="true">
+                    <arg value="-verbose"/>
+                    <arg value="-format"/>
+                    <arg value="${output.format}"/>
+                    <arg value="-density"/>
+                    <arg value="${output.density}"/>
+                    <arg value="-resize"/>
+                    <arg value="510&gt;"/>
+                    <fileset dir="${exportdir}${file.separator}graphics">
+                        <include name="*.*"/>
+                    </fileset>
+                    <mapper from="*.*" to="*.${output.format}" type="glob"/>
+                </apply>
+            </target>
+        </project>
+    </docato:AntScript>
+    <docato:PublishTargetName/>
+    <docato:CleanTargetName/>
+    <docato:ExportAsOne>false</docato:ExportAsOne>
+    <docato:TargetLanguages>en-gb</docato:TargetLanguages>
+    <docato:SchemaMappingIds>journalarticle</docato:SchemaMappingIds>
+    <docato:MMOResourceVariants>default</docato:MMOResourceVariants>
+    <docato:StyleSheetURIs>/stylesheets/export-sbmj-webapp</docato:StyleSheetURIs>
+    <docato:Variables>
+        <docato:Variable>
+            <docato:Name>FileImport:1</docato:Name>
+            <docato:VariableType>string</docato:VariableType>
+            <docato:Value>/sbmj</docato:Value>
+            <docato:Readonly>false</docato:Readonly>
+        </docato:Variable>
+    </docato:Variables>
+    <docato:ConfigurationMetadata/>
+    <docato:NameBindings>
+        <docato:Variable>
+            <docato:Name>export-sbmj-webapp-stylesheet</docato:Name>
+            <docato:VariableType>string</docato:VariableType>
+            <docato:Value>/stylesheets/export-sbmj-webapp</docato:Value>
+            <docato:Readonly>false</docato:Readonly>
+        </docato:Variable>
+    </docato:NameBindings>
+</docato:Publication>

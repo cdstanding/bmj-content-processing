@@ -1,0 +1,939 @@
+﻿highlights=Highlights
+highlights.summary=Summary 
+highlights.overview=Overview
+basics=Basics
+basics.definition=Definition
+basics.epidemiology=Epidemiology
+basics.aetiology=Aetiology
+basics.etiology=Etiology
+basics.pathophysiology=Pathophysiology
+basics.classification=Classification
+prevention=Prevention
+prevention.primary=Primary
+prevention.screening=Screening
+prevention.secondary=Secondary
+diagnosis=Diagnosis
+diagnosis.step-by-step=Step-by-step
+diagnosis.case-history=Case history
+diagnosis.history-and-examination=History & examination
+diagnosis.tests=Tests
+diagnosis.differential=Differential
+diagnosis.criteria=Criteria
+diagnosis.guidelines=Guidelines
+treatment=Treatment
+treatment.step-by-step=Step-by-step
+treatment.details=Details
+treatment.emerging=Emerging
+treatment.guidelines=Guidelines
+treatment.evidence=Evidence
+treatment.evidence.score=Evidence Score
+treatment.evidence.scorepopup=Evidence Score
+treatment.details.patientgroup=Patient Group Details
+follow-up=Follow Up
+follow-up.recommendations=Recommendations
+follow-up.complications=Complications
+follow-up.prognosis=Prognosis
+resources=Resources
+references=References
+resources.references=References
+resources.reference.bp=Reference
+resources.images=Images
+resources.image.bp=Image
+resources.online-resources=Online resources
+resources.patient-leaflets=Patient leaflets
+resources.credits=Credits
+resources.glossary=Glossary
+resources.nice-guideline=NICE Guideline
+resource.reference.abstract=Abstract
+resource.reference.fulltext=Full Text
+resource.reference.openurl=OpenURL
+resource.reference.url=URL
+# Evaluation Monograph Map messages
+emergencies=Emergencies
+emergencies.urgent-considerations=Urgent considerations
+emergencies.red-flags=Red flags
+overview=Overview
+overview.summary=Summary
+overview.summary.by-category=Summary
+overview.aetiology=Aetiology
+overview.etiology=Etiology
+diagnosis.approach=Approach
+diagnosis.differential-diagnosis=Differential diagnosis
+diagnosis.differential-diagnosis.prevalence=Differential diagnosis
+diagnosis.differential-diagnosis.by-category=Differential diagnosis
+resources.guidelines=Guidelines
+#Overview Monograph Map Messages
+overview.introduction=Introduction
+overview.conditions=Conditions
+overview.evidence=Evidence
+#generic monograph map messages:
+summary=Summary
+summary.overview=Overview
+
+#evidence navigation (new)
+evidence.questions=Interventions
+evidence.key-points=Key points
+evidence.background=About this condition
+evidence.updates=Updates
+evidence.references=References
+
+monograph.lastupdate=Last updated: 
+
+patient-information-leaflets=Patient information leaflets
+
+# Browse-related messages
+browse.monographs=Show conditions
+browse.categories=Categories
+browse.category=Category
+disease.condition.name=Condition name
+browse.all.diseases=All conditions
+browse.all.evaluation=Assessments
+browse.all.overview=Overviews
+browse.close=Close browser
+browse.conditions=Show conditions
+
+#database
+bnf.drugdb=British National Formulary Drug Information
+bnf.drugdb.notfound.para1=There is no corresponding entry for this medicine in the British National Formulary.
+bnf.drugdb.notfound.para2=This may be because either the medicine is not available in the United Kingdom, or is not licensed for this specific therapeutic indication. Some over-the-counter products may not be listed. 
+bnf.drugdb.notfound.para3=Please consult specialist literature, or local medicines information services for treatment alternatives.
+bnf.drugdb.warning.heading=Although this medicine is listed in the British National Formulary, it is either not available for this indication in the United Kingdom, or is available as a preparation given by a different administration route.
+bnf.drugdb.warning.para1=If you would still like to see the information available in the British National Formulary for this medicine please click on the drug link below.
+drugdb.drug-list.para=The following drugs are referenced in <em><i>{0}</i></em> topics 
+drugdatabase.error.title=Drug database not found
+drugdatabase.error.message=We have been unable to link to a drug formulary. Please ensure you have set up your formulary preference in your <a href='/best-practice/mybp/mybp.html'>My <i>Best Practice</i></a>. <br/><br/>If your subscription does not include a drug formulary and you would like to upgrade your subscription please <a href="{0}">contact</a> BMJ Customer Services.
+
+drugdb.lexicomp.drugdatabase=Drug Database
+drugdb.lexicomp.drugdatabase=Calculator
+drugdb.lexicomp.drug-list.para1=The following drugs are from LEXICOMP database.
+drugdb.lexicomp.drug-list.para2=Calculators from Lexi-Comp.
+drugdb.lexicomp.drug-list.categories=Categories
+drugdb.lexicomp.interaction-rating.known-interactions=Known {0} Interactions
+drugdb.lexicomp.interaction-rating.no-known-interactions=There is no known interaction for drug {0} with ratings c,d or x
+drugdb.lexicomp.interaction-rating.click-interacting-drug=Click Interacting Drug for Interaction Monograph
+drugdb.lexicomp.interaction-rating.interacting-drug=Interacting Drug (Drug Name)
+drugdb.lexicomp.interaction-rating.risk-rating=Risk Rating
+drugdb.lexicomp.interaction=Interactions
+drugdb.lexicomp.interaction.description=Descriptions
+
+#Error Page
+errorpage.title=Sorry, an error has occurred.
+errorpage.message=If this problem persists, please contact BMJ Customer Services on {0} or email them at <a href="{1}">{2}</a>, including the information below.
+errorpage.moreinfo=The following information will be useful in helping us to resolve this error:
+errorpage.moreinfo.errorid=Error reference number
+errorpage.moreinfo.username=Username
+errorpage.moreinfo.sessionid=Session ID
+errorpage.moreinfo.clientid=Client IP
+errorpage.moreinfo.serverid=Server ID
+errorpage.moreinfo.requesturi=Requested URI
+errorpage.moreinfo.requestquerystring=Request query string
+errorpage.moreinfo.referringpage=Referring page
+errorpage.moreinfo.timestamp=Timestamp
+errorpage.moreinfo.details=Click here to view more technical details
+
+#Error 404
+error404.title=Page not found
+error404.msg=Unfortunately the page you requested does not exist. To go back, click <a {0}>here</a>
+error404-competition.msg=Oops it looks like an error has occurred.<br/><br/>Possible diagnoses include; the page you are looking for has been moved to another location, the page has been taken offline, a URL has been mis-typed, or we have simply deleted a file.<br/><br/>To avoid any further complications, please visit again in a few minutes.
+
+# Other messages
+error=Error
+system.error=A system error occurred.
+error.apology=We apologise for the inconvenience.
+page.unavailable=This page is not available for this condition.
+type.unavailable=This condition type is currently not supported.
+
+# Page buttons
+page.share=Share
+page.learning=Add to Portfolio
+page.print=Print
+page.bookmarked=Bookmarked
+page.bookmark=Bookmark
+page.email=Email
+page.feedback=Feedback
+page.notes=Add notes
+
+# Email friend messages
+email.friend=Email a Friend
+email.friend.text=Please complete the form below and click Send.
+email.friend.label.sendername=Your name
+email.friend.label.senderemail=Your email
+email.friend.label.recipientname=Friend's name
+email.friend.label.recipientemail=Friend's email
+email.friend.label.subject=Subject
+email.friend.label.message=Message
+email.friend.invalid.sendername=Please enter your name.
+email.friend.invalid.recipientname=Please enter the recipients name.
+email.friend.invalid.email=Please enter a valid email address.
+email.friend.evidence.intro=The following content is from {0} on the <a href="{1}"><i>{2}</i></a> website and it has been forwarded to you by <strong>{3}</strong>.
+email.friend.monograph.intro=The following content is from <a href="{0}">{1}</a> on the <a href="{2}"><i>{3}</i></a> website and it has been forwarded to you by <strong>{4}</strong>.
+
+#Recommend Institution Messages
+recommend.institution=Recommend <i>{0}</i> to your institution
+recommend.institution.trial=Recommend your institution for a free trial
+recommend.institution.para1=You can use this form to recommend that your institution purchase a subscription to <i>{0}</i>.
+recommend.institution.para2=Please complete the information below and then click on 'Send'. Your recommendation, together with your name, position, department and email address, will be emailed directly to your librarian or other purchasing authority. We may also use these details to contact your librarian about pricing and product information.
+recommend.institution.marketing= I would like BMJ group to keep me up to date with news of products and services that may be of interest.
+
+recommend.institution.label.from=Your Personal Details
+recommend.institution.label.sendertitle=Title
+recommend.institution.label.senderfirstname=First Name
+recommend.institution.label.senderlastname=Last Name
+recommend.institution.label.senderposition=Position
+recommend.institution.label.senderdept=Department
+recommend.institution.label.senderinstitution=Institution
+recommend.institution.label.sendercountry=Country
+recommend.institution.label.senderemail=Email address
+
+recommend.institution.label.to=I would like to recommend <i>{0}</i> to:
+recommend.institution.label.recipientname=Name
+recommend.institution.label.recipientinstitution=Institution
+recommend.institution.label.recipientcountry=Country
+recommend.institution.label.recipientemail=Library email (if known)
+
+recommend.institution.label.recommend=I recommend <i>{0}</i> for the following reasons:
+recommend.institution.label.recommend.1=I am studying medicine and find this site useful as a reference tool 
+recommend.institution.label.recommend.2=I am a GP and find this site useful in helping me diagnose and treat patients
+recommend.institution.label.recommend.3= I am a consultant and find the site useful in helping me diagnose and treat patients
+recommend.institution.label.recommend.4= I am a tutor and find the site useful as a teaching aid
+recommend.institution.label.recommend.5= Other/additional reason (please state):
+
+recommend.institution.intro={0} has suggested you may be interested in the BMJ <i>{1}</i> website.
+recommend.institution.invalid.sendertitle=Please enter your title.
+recommend.institution.invalid.senderfirstname=Please enter your first name.
+recommend.institution.invalid.senderlastname=Please enter your last name.
+recommend.institution.invalid.senderinstitution=Please enter the name of your institution.
+recommend.institution.invalid.sendercountry=Please enter your country of residence.
+recommend.institution.invalid.senderemail=Please enter your email address.
+recommend.institution.invalid.recipientinstitution=Please enter the name of the institution who you wish to recommend us to.
+recommend.institution.invalid.recipientcountry=Please enter the country of this institution.
+recommend.institution.invalid.email=Please enter a valid email address.
+recommend.institution.invalid.reason=Please enter your recommendation reason.
+
+recommend.email.subject={0} subscription recommendation
+recommend.email.salutation=Dear {0}
+
+recommend.email.institution.intro={0} has recommended that your institution subscribes to <a href="{1}"><i>{2}</i></a> from the BMJ Evidence Centre.
+recommend.email.friend.intro={0} has recommended that you subscribe to <a href="{1}"><i>{2}</i></a> from the BMJ Evidence Centre.
+recommend.email.reason.intro={0} says
+recommend.email.recommended-by=Recommended by
+recommend.email.their-email=Their email
+recommend.email.bp=<i>{0}</i> is a completely new concept for information delivered at the point of care. In one single source we have combined the latest research evidence, guidelines and expert opinion presented in a step-by-step approach, covering diagnosis, prognosis, treatment and prevention. It provides a second opinion in an instant, without the need for checking multiple resources. Its unique patient-focused approach represents a major new advancement in information delivery at point of care
+recommend.email.next-step=Your Next Step
+recommend.email.next-step.institution=For an institutional subscription quotation, or to arrange for 60 days free trial access to <i>{0}</i> for your institution, please contact our sales team: consortiasales@bmjgroup.com.
+recommend.email.next-step.friend=You can try <i>{0}</i> for free. We offer both institutional and personal trials, allowing you to assess the evidence for yourself.
+recommend.email.more-info=You can find more information about <i>{0}</i> and other evidence-based products from the BMJ Group at http://evidencecentre.bmj.com
+recommend.email.signoff=Kind Regards
+
+recommend.friend=Recommend <i>{0}</i> to your friend
+recommend.friend.browser-title=Recommend {0} to your friend
+recommend.friend.para1=You can use this form to recommend that your friend purchase a subscription to <i>{0}</i>.
+recommend.friend.para2=Please complete the information below and then click on 'Send'. Your recommendation, together with your name and email address, will be emailed directly to your friend. We may also use these details to contact your friend about pricing and product information.
+
+# User feedback messages
+user.feedback=Feedback
+user.feedback.text=Please complete the form below and click Send.
+user.feedback.label.firstName=First Name
+user.feedback.label.surname=Surname
+user.feedback.label.senderEmail=Email
+user.feedback.label.subject=Subject
+user.feedback.label.message=Message
+user.feedback.label.phone=Phone
+user.feedback.label.company=Company
+user.feedback.label.occupation=Occupation
+user.feedback.invalid.firstName=Please enter your first name.
+user.feedback.invalid.surname=Please enter your surname.
+user.feedback.invalid.subject=Please enter a subject.
+user.feedback.invalid.message=Please enter a message.
+user.feedback.invalid.email=Please enter a valid email address.
+user.feedback.invalid.occupation=Please enter your occupation.
+
+# Search-related messages
+search.title=Search
+search.error=Search Error
+search.invalid=There are some invalid characters in the entered search term. Please try again using a valid search term.
+search.termrequired=Please enter some terms to search for and then press enter.
+search.insufficientterm=Please enter a more specific search term.
+search.results=Search results
+search.noresults=No search results found.
+search.suggestresults=Suggest Results
+# search tabs
+search.all=Search All
+search.allresults=All results
+search.monographs=Conditions
+search.diagnosis=Diagnosis
+search.treatment=Treatment
+search.evidence=Evidence
+search.patient-leaflets=Patient Leaflets
+search.guidelines=Guidelines
+# search result categories (left hand side of results, where different from above)
+search.patient-leaflet=Patient Leaflet
+search.guideline=Guideline
+search.drug-database=Drug Database
+search.Assessment=Assessment
+search.Overview=Overview
+search.Condition=Condition
+# other search page text:
+search.tab.refine=Hint: Use the tabs to refine your search
+search.save.button=Save this search
+search.results1st=Results <strong>1</strong> to <strong>
+search.results2nd=</strong> of <strong>
+search.youmean=Did you mean
+search.default=Search {0}
+search.box.empty=Insert your search term here
+search.showall01=Show all 
+search.showall02= results (may be slow)...
+#search-results pages
+search.results.widen-search-option=Or would you like to <em><a tabindex="45" href="{0}">widen your search</a></em>? (see below)
+search.results.widen-search=Widen your search
+search.results.widen-search-now=Widen your search now
+search.results.widen-search.para1=We found no results because we have no pages that include <strong>all</strong> the terms you entered.<br /> You can widen your search to include pages that contain <strong>any</strong> of the terms.
+search.results.search-method=Our search method
+search.results.search-method.para1=Our default search looks for...
+search.results.search-method.para2=Widening your search looks for...
+search.results.hint-codematching=Hint: to avoid code matching, use quotes: 
+search.results.found=Found {0} matching code
+search.results.matches=Matches for {0} in {1}:
+search.results.nomatches=We found no matches in our content for code {0} in {1}.
+search.results.classificationcode=We have detected that you entered a classification code, and have presented the results we feel best match your search. However, if you wish to search on the text alone, please enclose it in quotation marks:
+# MyBP
+mybp.title=My <i>{0}</i>
+mybp.title.browser-title=My {0}
+mybp.bookmarks-searches.title=Bookmarks/Searches
+mybp.drug-databases.title=Drug Formulary
+mybp.no-drug-database=Your subscription does not include a drug formulary. If you would like to upgrade your subscription please <a href="/best-practice/marketing/contact-us.html">contact</a> BMJ Customer Services.
+mybp.drug-database.msg=Your subscription includes access to the drug formularies listed below. If you would like to upgrade your subscription by adding further drug formularies, please <a href="/best-practice/marketing/contact-us.html">contact</a> BMJ Customer Services.
+ 
+mybp.drug-database.link-pref.prompt=By default you will always be prompted to select an appropriate furmulary when clicking on a treatment link. <br/>Alternatively, please select a default formulary that should be used when you click on a treatment link.
+mybp.drug-database.link-pref.default1=Your default drug formulary is <b>{0}</b>.
+mybp.drug-database.link-pref.default2=Your default drug formulary is <b>{0}</b>. You may change this by selecting another formulary from the list below.<br/>By clicking <b>Remove Defaults</b>, you opt to always be prompted to select an appropriate formulary when clicking on a treatment link. 
+mybp.bookmarks=You have {0} saved bookmarks:
+mybp.bookmark=You have 1 saved bookmark:
+mybp.searches=You have {0} saved searches:
+mybp.search=You have 1 saved search:
+mybp.guidelines=You have {0} institutional guidelines:
+mybp.guideline=You have 1 institutional guideline:
+mybp.patient-leaflets=You have {0} institutional patient leaflets:
+mybp.patient-leaflet=You have 1 institutional patient leaflet:
+mybp.planandrecord.title=BMJ Portfolio
+mybp.planandrecord.view=You have {0} <i>{1}</i> resources in your BMJ Learning Plan and Record.<br/>To view or edit your plan go to <a href={2} target="_blank">My BMJ Learning Plan and Record</a>
+mybp.planandrecord.error=We have been unable to fetch your Plan and Record. To view or edit your plan go to <a href={0} target="_blank">My BMJ Learning Plan and Record</a>
+mpbp.information-from=Information from
+mpbp.resources=Resources
+mpbp.date=Date
+mpbp.summary=Summary
+mpbp.delete=delete
+
+
+myinstitution.title=My Institution
+myinstitution.guidelines=You have {0} saved guidelines:
+myinstitution.guideline=You have 1 saved guideline:
+myinstitution.guidelines.title=Guidelines
+myinstitution.guidelines.added.by=Guidelines added by your institution:
+myinstitution.guidelines.add=Add Institutional guidelines
+myinstitution.guidelines.add.text=Once you have added the guidelines here, go to the guidelines section of the condition they are relevant to and follow the instructions to add them to that condition.
+myinstitution.guidelines.nojavascript=We have detected that you don't have javascript enabled in your browser. Your browser must have javascript enabled to use My Institution. Contact your web administrator for help on how to enable javascript.
+monograph.guidelines.add.text=Below are the guidelines that were added in
+added.on=Added on 
+myinstitution.guidelines.label.title=Title
+myinstitution.guidelines.label.url=URL
+myinstitution.guidelines.label.summary=Summary
+myinstitution.guideline.label.condition=Conditions:
+myinstitution.administrator.guide=Download our <a href="{0}">Institutional Administrator Guide</a> which includes the information you need to ensure your subscription is set up correctly, and to enable you to make the most of the features available to institutional subscribers.
+
+myinstitution.patient-leaflets.title=Patient leaflets
+myinstitution.patient-leaflets=You have {0} saved patient leaflets:
+myinstitution.patient-leaflet=You have 1 saved patient leaflet:
+myinstitution.patient-leaflets.add=Add patient leaflets
+myinstitution.patient-leaflets.added.by=Patient leaflets added by your institution:
+monograph.patient-leaflets.add.text=Below are the patient leaflets that were added in
+myinstitution.patient-leaflets.add.text=Once you have added the patient leaflet here, go to the patient leaflets section of the condition they are relevant to and follow the instructions to add them to that condition.
+myinstitution.patient-leaflets.label.title=Leaflet Title
+myinstitution.patient-leaflets.label.url=Leaflet URL
+myinstitution.patient-leaflets.label.condition=Conditions:
+institutional.patient-leaflets.msg=Your institution may also have uploaded links to its own patient leaflets - if so, these can be found either within <a href="{0}">My <i>{1}</i></a> or within the patient leaflets in the "resources" section of the relevant topic.
+
+myinstitution.locale.title=Default Language
+myinstitution.locale.set-locale.text=Please configure a default language for your institution below. This will change the navigation language for all of your end users.
+myinstitution.locale.current-locale.text=Your language is:
+myinstitution.locale.choose-locale.label=Choose language
+myinstitution.locale.not-set.text=Not set
+myinstitution.locale.remove =Remove
+
+myinstitution.sidebarlinks=You have {0} saved sidebar links:
+myinstitution.sidebarlink=You have 1 saved sidebar link:
+myinstitution.sidebarlink.title=Sidebar links
+myinstitution.sidebarlink.add=Add a new sidebar link
+myinstitution.sidebarlink.add.text=Links added here will appear in the right-hand sidebar on every page of the site for your users.
+myinstitution.sidebarlink.label.title=Link label
+myinstitution.sidebarlink.label.url=Link URL
+myinstitution.config.title = Display Settings
+myinstitution.config.title=Display Settings
+myinstitution.config.ce.link=Display CE link
+myinstitution.config.patientleaflents.link=Display leaflets link
+myinstitution.config.portfolio.link=Display portfolio link
+myinstitution.config.title=Site config
+
+# Form validation messages
+mybp.title.missing=Please enter title
+mybp.url.missing=Please enter URL
+mybp.url.invalid=Please enter a valid URL
+mybp.summary.missing=Please enter summary
+mybp.summary.toolong=Please ensure the summary does not exceed {0} characters in length
+mybp.notes.missing=Please enter notes
+mybp.notes.saved=Your notes have been successfully saved.
+notes.tooltip.txt = Add your notes for this page. Please note this feature requires you to sign in with a personal account.
+mybp.save.error=Personalised data save error
+mybp.error.field-too-long=We could not save this personalised data item because one of the fields was too long.
+
+mybp.invalid.operation=Invalid Operation
+mybp.invalid.operation.generic=You have performed an invalid operation. Please maintain your personalised content using the links provided.
+mybp.invalid.operation.itemunselected=Please select the item by using the links provided.
+mybp.invalid.operation.unauthorised=You are not authorised to access this part of our website. Please contact your system administrator.
+mybp.invalid.operation.itemnotfound=This item does not exist.
+myinstitution.locale.missing =Please select a locale.
+
+
+# Navigation Labels
+nav.mybp=My <i>{0}</i>
+nav.about=About <i>{0}</i>
+nav.patientinfo=Patient Leaflets
+nav.help=Help
+nav.myinstitution=My Institution
+nav.bpmobile=<i>{0}</i> Mobile
+nav.drug-information=Drug Information
+nav.calculator-information=Calculations
+
+
+# Generic labels
+add=Add
+save=Save
+send=Send 
+cancel=Cancel
+edit=Edit
+remove=Remove
+close=Close
+continue=Continue
+more=More
+top=Top
+all=All
+view=View
+
+# Homepage
+browse.index.conditions.1=Browse 
+browse.index.conditions.2= conditions
+
+welcome=Welcome to {0}
+welcome.whatsnew=What's new/updated?
+welcome.full.list.of.topics=<a href="{0}">See a full list of updated topics</a> recently published on <i>{1}</i>.
+welcome.in.the.spotlight=In the spotlight
+welcome.download.video=Download the video to your computer here
+welcome.take.tour=Take a tour
+welcome.sample.pages=Sample pages
+welcome.get.started=Getting started with <i>{0}</i>
+tour.goback=To go back, click <a href='{0}'>here</a>
+
+
+#Login/Paywall
+login=Login
+login.error=Login Error
+login.invalid=The entered sign-in details are incorrect. Please enter a valid username and password below and try again.
+login.multiple-identity=You are already logged in as a personal user. Please log out of the current session first before proceeding with the Athens sign in.
+login.logout=Click here to logout of the current session 
+login.username = Username
+login.password = Password
+login.forgot = Forgot your sign in details?
+login.rememberme= Remember me
+login.rememberme.title=If you want this site to remember your details so you don't have to type them in again, please tick this box. If you use a public computer - like at a library or hotel - never check the 'Remember Me' option on any website that you visit.<br/>To prevent your details from being saved in the future, please log out.
+subscription.content={0} Subscription Content
+unauthorised.access = Unauthorised Access
+unauthorised.access.msg = You have tried to access content that requires a subscription to <i>{0}</i>.
+unauthorised.access.institution.msg=It appears that your institution {0} does not currently have a subscription.
+unauthorised.access.institution.msg.generic=It appears that your institution does not currently have a subscription.
+unauthorised.access.signin=Please sign in
+unauthorised.access.administrator.msg = You need to log into <i>{0}</i> using your administrator account to access this part of the website. Please sign in below using your administrator details.
+unauthorised.access.personalisation.msg = In order to access the personalisation features available from My <i>{0}</i> you will need to sign in with a personal account.
+
+unauthorised.access.learning.msg = In order to add content to your BMJ Learning Plan and Record you will need to sign in with a personal account.
+unauthorised.access.learning.registration.msg = Hello {0}. Although you have registered for <i>{1}</i>, in order to add content to your BMJ Learning Plan and Record you will need to register for a free BMJ Learning account.
+#unauthorised.access.learning.registration.update.msg=Hello {0}. Although you have a BMJ Learning account, we need to update your registration in order to add content to your BMJ Learning Plan and Record.
+
+unauthorised.access.subscription.msg = Hello {0}. Although you have registered for another BMJ product, in order to use <i>{1}</i> you will need to subscribe or sign up for a free trial.
+unauthorised.access.institution.content-not-included-in-subscription.msg = Although your institution, {0}, subscribes to part of <i>{1}</i>, the subscription does not cover this content.
+unauthorised.access.content-not-included-in-subscription.msg = Hello {0}. Although you subscribe to part of <i>{1}</i>, the subscription does not cover this content.
+unauthorised.access.options = Not got an account? Here are your options:
+unauthorised.access.actions.athens.msg = Athens users sign in here
+unauthorised.access.actions.athens = Sign in via Athens
+#unauthorised.access.actions.register.update = Update
+#unauthorised.access.actions.register.update.text = your BMJ Learning registration. Click <a href="{0}">here</a> to learn more about the benefits of a BMJ Learning account.
+unauthorised.access.actions.register = Register
+unauthorised.access.actions.register.text = for your own personal account.
+unauthorised.access.actions.register.learning.text= for your own personal account. Click <a href="{0}">here</a> to learn more about the benefits of a BMJ Learning account. 
+unauthorised.access.actions.subscribe = Subscribe
+unauthorised.access.actions.subscribe.text = for full, unlimited access to <i>{0}</i>.
+unauthorised.access.actions.recommend = Recommend
+unauthorised.access.actions.recommend.text = a subscription to your institution.
+unauthorised.access.actions.freetrial = Free Trial Access
+unauthorised.access.actions.freetrial.text = - we offer free trial access for individuals and institutions.
+unauthorised.access.contact = If you have problems accessing <i>{0}</i> please contact our customer service team on: {1}
+
+session.expired.msg = Due to a period of inactivity your current session has expired. Please sign in again.
+multiple.login.attempt.msg = It looks like you are already logged in. Perhaps you clicked the button twice?
+multiple.login.attempt.actions.logout = Please log out
+multiple.login.attempt.actions.logout.text = first to log in as a different user.
+
+# Status Area
+status.signed-in.label=Signed in as:
+status.institution.label=Institution:
+status.institution.link=visit site
+status.institution.logo.alt=Institutional Logo
+status.login.instructions.part-one=Log in or
+status.login.instructions.part-two=for personal access.
+status.login.register.link=register
+status.login.register.why=why?
+status.login.register.why.title=Register an account to access My <i>{0}</i> personalised features.
+status.username.label=Username
+status.username.prompt=Type email address here
+status.password.label=Password
+status.rememberme.label=Remember me.
+status.rememberme.title=If you want this site to remember your details so you don't have to type them in again, please tick this box. If you use a public computer - like at a library or hotel - never check the 'Remember Me' option on any website that you visit.<br/>To prevent your details from being saved in the future, please log out.
+status.forgot.label=Forgot your sign in details?
+status.update-details.label=Update your details
+status.free-trial.label=Sign up for a free trial
+status.subscription.label=Subscribe for unlimited access
+status.athens.login.label=Athens users sign in here
+status.athens.logged-in.label=Logged in via Athens
+status.recommend-institution.label=Recommend <i>{0}</i> to your institution
+status.recommend-institution-trial.label=Recommend your institution for a free trial
+status.recommend-friend.label=Recommend <i>{0}</i> to your friend
+status.logout.label=Logout
+status.shibboleth-users.label=Shibboleth users go here
+
+news-feeds.email-alerts.label=News feeds & Email alerts
+news-feeds.label=News feeds
+rss-updates.label=Get your updates via RSS
+email-alerts.signup.label=Sign up for email alerts
+
+#Share
+share.title=Share this page with others
+share.info=Copy the link in the box below and paste it in an email or on a website for others to share.
+share.note.title=Note
+share.note.text=: This link will be valid for {0} days
+share.tooltip.txt=Share this content with colleagues through pasting the link to emails, websites, or blogs. It will remain freely available for {0} days.
+
+# Learning integration
+learning.title=Add to BMJ Learning Plan and Record
+learning.info=<b>{0}</b> will be added to your BMJ Learning Plan and Record. 
+learning.continue.prompt=Click here to confirm.
+learning.confirm.msg=This content been successfully added to your BMJ Learning Plan and Record. To view or edit your plan go to <a href={0} target="_blank">My BMJ Learning Plan and Record</a>
+learning.already.added.msg=You have already added this content to your BMJ Learning Plan and Record. To view or edit your plan go to <a href={0} target="_blank">My BMJ Learning Plan and Record</a>
+learning.error.msg=We have been unable to add this content to your BMJ Learning Plan and Record. Please try again. <br/>If this problem persists, please contact BMJ Customer Services on +44 (0)20 7383 6769 or email them at <a href="mailto:support@bmjgroup.com">support@bmjgroup.com</a>.
+learning.whatis=BMJ Learning's Plan and Record allows you to keep track of all your CPD and ongoing learning, as well as printing reports for appraisals or accreditation.
+learning.tooltip.txt=Add this <i>{0}</i> content to your BMJ Learning Plan and Record. Please note this requires you to be registered for BMJ Learning. 
+
+# Site navigation (underneath the main content)
+site-nav.about=About <i>{0}</i>
+site-nav.take-a-tour=Take a tour
+site-nav.free-trials=Free trials
+site-nav.product-info=Product information
+site-nav.sample-content=Sample content
+site-nav.editorial-team=Editorial team
+site-nav.subscribe=Subscribe
+site-nav.personal-access=Personal access
+site-nav.institutional-access=Institutional access
+site-nav.bpmobile=Mobile and remote access
+site-nav.help=Help
+site-nav.user-guide=User guide
+site-nav.faq=FAQ
+site-nav.contact-us=Contact us
+site-nav.contact.customer-service=Customer service
+site-nav.contact.sales=Sales
+site-nav.contact.editorial=Editorial
+site-nav.about-us=About us
+site-nav.evidence-centre=BMJ Evidence Centre
+site-nav.press-and-news=Press and News
+        
+# Footer
+footer.evidence-centre.logo.alt=evidence centre logo
+footer.contact-us=Contact us
+footer.disclaimer=Disclaimer
+footer.revenue-sources=Revenue sources
+footer.website-terms=Website terms &amp; conditions
+footer.privacy-policy=Privacy policy
+footer.home=Home
+footer.top=Top
+
+header.bmj.logo.alt=<i>{0}</i>
+header.bmj.logo.title=<i>{0}</i> homepage
+
+# Messages
+messages.bookmark=This page has been bookmarked. To view or edit your bookmarks go to <a tabindex="45" href="{0}">My <i>{1}</i></a>
+messages.search=Your search term has been saved. To view or edit your saved searches go to <a tabindex="45" href="{0}">My <i>{1}</i></a>
+messages.email=Your email has been sent!
+messages.feedback=Your feedback has been submitted.
+
+# Disclaimer
+disclaimer=Use of this content is subject to our <a tabindex="65" href="{0}">disclaimer</a>
+########################################
+# locale-specific application properties
+# NOT FOR TRANSLATION!!
+locale.css.file = locale-default.css
+
+# Included page
+accessibility-links.jump-to=Jump to
+accessibility-links.page-content=Page Content
+accessibility-links.site-search=Site Search
+accessibility-links.site-navigation=Site Navigation
+annotation.notes=Notes
+annotation.share-with-institutional-members=Share with all institutional members?
+doc2doc-links.para1=Discuss this topic on the <a tabindex="65" href="http://doc2doc.bmj.com/forums.html?slGroupKey={0}" target="_blank" rel="external">{1}</a> forum at <a tabindex="65" href="http://doc2doc.bmj.com/" target="_blank" rel="external">doc2doc</a>
+evidence-hint.para1=This treatment evidence is not currently associated with a topic in <em><i>{0}</i></em>.
+evidence-hint.para2=This evidence is associated with the <em><i>{0}</i></em> topic
+evidence-hint.para3=This evidence is associated with the <em><i>{0}</i></em> topics
+footer.all-rights-reserved=BMJ Publishing Group Limited 2011. All rights reserved.
+index-header.getting-started=Getting started
+index-header.about=About <i>{0}</i>
+index-header.bookmarks=Bookmarks
+index-header.saved-searches=Saved searches
+index-header.mobile-access=Mobile and remote access
+index-header.free-trial=Free trial
+index-header.sample-content=Sample content
+index-header.video-tour=Video tour
+index-header.faq=FAQ
+index-header.purchasing-options=Purchasing options
+lexicomp-footer.copyright=Copyright &copy; 1978-2010 Lexi-Comp Inc. All Rights Reserved
+ashp-footer.copyright=AHFS Drug Information. &copy; Copyright, 1959-2011, Selected Revisions September 01, 2005, American Society of Health-System Pharmacists, Inc., 7272 Wisconsin Avenue, Bethesda, Maryland 20814. 
+
+lexicomp-hint.para1=This drug is not currently associated with a topic in <em>{0}</em>.
+lexicomp-hint.para2=This drug is associated with the <em>{0}</em> topic
+lexicomp-hint.para3=This drug is associated with the <em>{0}</em> topics
+oak-general-lib.web-publication=Web publication date:  {0} {1} {2} (based on {3} {4} search)
+
+########################################
+#Source Data for XSL
+body.highlights.overview.key-factors=Key factors
+body.highlights.overview.history-and-exam=History & exam
+body.highlights.overview.history-and-exam-details=History & exam details
+body.highlights.overview.diagnostic-tests=Diagnostic tests
+body.highlights.overview.diagnostic-tests-details=Diagnostic tests details
+body.highlights.overview.diagnostic-factors=Diagnostic factors
+body.highlights.overview.other-diagnostic-factors=Other diagnostic factors
+body.highlights.overview.1st-tests-to-order=1st tests to order
+body.highlights.overview.tests-to-consider=Tests to consider
+body.highlights.overview.emerging-tests=Emerging tests
+body.highlights.overview.treatment-details=Treatment details
+body.highlights.overview.presumptive=Presumptive
+body.highlights.overview.acute=Acute
+body.highlights.overview.ongoing=Ongoing
+
+body.highlights.summary.other-related-conditions=Other related conditions
+
+body.prevention.primary.primary-prevention=Primary prevention
+body.prevention.primary.secondary-prevention=Secondary prevention
+
+body.diagnosis.case-history.other-presentations=Other presentations
+body.diagnosis.criteria.diagnostic-criteria=Diagnostic criteria
+body.diagnosis.differential.differential-diagnosis=Differential diagnosis
+body.diagnosis.differential.differential-diagnosis-table-for=Differential Diagnosis table for
+body.diagnosis.differential.condition=Condition
+body.diagnosis.differential.differentiating-signs=Differentiating signs/symptoms
+body.diagnosis.differential.differentiating-tests=Differentiating tests
+body.diagnosis.history-and-examination.risk-factors=Risk factors
+body.diagnosis.history-and-examination.strong=Strong
+body.diagnosis.history-and-examination.weak=Weak
+body.diagnosis.history-and-examination.key-diagnostic-factors=Key diagnostic factors
+body.diagnosis.history-and-examination.other-diagnostic-factors=Other diagnostic factors
+body.diagnosis.history-and-examination.diagnostic-factors=Diagnostic factors
+body.diagnosis.history-and-examination.is-a-key-diagnostic-factor=is a key diagnostic factor
+body.diagnosis.history-and-examination.is-a-diagnostic-factor=is a diagnostic factor
+body.diagnosis.step-by-step.diagnostic-approach=Step-by-step diagnostic approach
+body.diagnosis.step-by-step.click-to-view-diagnostic-guideline-references=Click to view diagnostic guideline references.
+body.diagnosis.tests.diagnostic-tests=Diagnostic tests
+body.diagnosis.tests.1st-tests-to-order=1st tests to order
+body.diagnosis.tests.tests-to-consider=Tests to consider
+body.diagnosis.tests.emerging-tests=Emerging tests
+body.diagnosis.tests.table-for=table-for
+body.diagnosis.tests.test=Test
+body.diagnosis.tests.result=Result
+body.diagnosis.guidelines.diagnostic-guidelines=Diagnostic guidelines
+body.diagnosis.guidelines.evidence-centre=The BMJ Evidence Centre has not yet identified any diagnostic guidelines that are relevant to this condition.
+# eval
+body.diagnosis.differential-diagnosis.sort-by=Sort by:
+body.diagnosis.differential-diagnosis.common-uncommon=common/uncommon
+body.diagnosis.differential-diagnosis.category=category
+body.diagnosis.differential-diagnosis.sort-by=Sort by: <a tabindex="45" class="active" href="#">common/uncommon</a> or <a tabindex="45" href="{0}">category</a>
+body.diagnosis.differential-diagnosis.sort-by-category=Sort by: <a tabindex="45" href="{0}">common/uncommon</a> or <a tabindex="45" class="active" href="#">category</a>
+
+body.emergencies.urgent-considerations.see-differential-diagnosis=See <a tabindex="45" href="{0}">Differential Diagnosis</a> for more details
+
+body.treatment.details.treatment-details=Treatment details (First select your patient group)
+body.treatment.details.select-patient-group=Select your patient group
+body.treatment.details.and-time-frame=and time frame
+body.treatment.details.patientgroup.treatment-details=Treatment details (Now select a treatment)
+body.treatment.details.patientgroup.back-to-patient-groups=back to patient groups
+body.treatment.details.patientgroup.select-treatment=Select a treatment to see more
+body.treatment.details.patientgroup.treatment-line=Treatment line
+body.treatment.details.patientgroup.treatment=Treatment
+body.treatment.details.patientgroup.other-patient-groups-within-this-group=Other Patient groups within this group
+body.treatment.details.patientgroup.tooltip1=Treatment recommended for SOME patients in selected patient group. Click on treatment name for more details.
+body.treatment.details.patientgroup.tooltip2=Treatment recommended for ALL patients in selected patient group.
+body.treatment.details.patientgroup.adjunct=adjunct
+body.treatment.details.patientgroup.plus=plus
+body.treatment.details.patientgroup.primary-options=Primary Options
+body.treatment.details.patientgroup.secondary-options=Secondary Options
+body.treatment.details.patientgroup.tertiary-options=Tertiary Options
+body.treatment.emerging.emerging-treatments=Emerging treatments
+body.treatment.guidelines.treatment-guidelines=Treatment guidelines
+body.treatment.guidelines.evidence-centre=The BMJ Evidence Centre has not yet identified any treatment guidelines that are relevant to this condition.
+body.treatment.step-by-step.treatment-approach=Treatment approach
+body.follow-up.complications.complication.table.for=Complication table for
+body.follow-up.complications.complication=Complication
+body.follow-up.complications.timeframe=Timeframe
+body.follow-up.complications.likehood=Likelihood
+body.follow-up.recommendations.monitoring=Monitoring
+body.follow-up.recommendations.patient-instructions=Patient Instructions
+
+body.resource.references.systematic-review-references=Systematic reviews: References
+
+body.resources.credits.topic-last-updated=Topic last updated: 
+body.resources.credits.authors=Authors
+body.resources.credits.peer-reviewers=Peer Reviewers
+body.resources.credits.disclosures=Disclosures
+body.resources.nice-guideline.evidence-grade=NICE Evidence Grade
+body.resources.nice-guideline.evidence-grading-scheme=Click here for evidence grading scheme
+body.resources.nice-guideline.recommendations=Recommendations
+body.resources.nice-guideline.detailed-guidance=Detailed guidance
+body.resources.image.bp.referenced-in-place=This image is referenced in the following place:
+body.resources.image.bp.referenced-in-places=This image is referenced in the following places:
+body.resources.images.click-on-image=Click on an image to view full size. Select multiple images with the <a href="{0}">button below</a>
+body.resources.patient-leaflets.leaflets-from=Patient leaflets from <i>{0}</i>
+body.resources.patient-leaflets.no-leaflets=We do not have any patient leaflets for this topic at present.
+body.resources.references.view-all=View all references
+body.resources.references.citations=Citations
+body.resources.references.key-articles=Key articles
+body.resources.references.reference-articles=Reference articles
+body.resources.image.evidence=Evidence
+body.resources.image.figure=Figure
+
+body.treatment.evidence.background.related-systematic-reviews-background=Related systematic reviews: Background
+body.treatment.evidence.background.systematic-review-background=Systematic review: Background
+body.treatment.evidence.background.in-this-section=In this section:
+body.treatment.evidence.background.background=Background
+
+body.overview.summary.common=Common
+body.overview.summary.uncommon=Uncommon
+body.overview.summary.sort-by=Sort by: <a tabindex="47" href="{0}" class="active">common/uncommon</a> or <a tabindex="47" href="{1}">category</a>
+body.overview.summary.sort-by-category=Sort by: <a tabindex="47" href="{0}">common/uncommon</a> or <a tabindex="47" href="{1}" class="active">category</a>
+
+body.evidence.browse.sections=Sections
+body.evidence.browse.topics-in-this-section=Topics in this section are covered under other sections.
+body.evidence.browse.covered-elsewhere=Covered elsewhere:
+body.evidence.contents.contents=Contents
+body.evidence.contents.systematic-review-contents=Systematic review: Contents
+body.evidence.contents.list-of-clinical-questions=Here is a list of clinical questions we have addressed in this review.
+body.evidence.contents.read-key-points=You may prefer to <a href="{0}">read the key points</a> of this review
+body.evidence.efficacy-list.beneficial=Beneficial
+body.evidence.efficacy-list.likely-to-be-beneficial=Likely to be beneficial
+body.evidence.efficacy-list.trade-off-between-benefits-and-harms=Trade off between benefits and harms
+body.evidence.efficacy-list.unknown-effectiveness=Unknown effectiveness
+body.evidence.efficacy-list.unlikely-to-be-beneficial=Unlikely to be beneficial
+body.evidence.efficacy-list.likely-to-be-ineffective-or-harmful=Likely to be ineffective or harmful
+body.evidence.intervention.evidence=Evidence
+body.evidence.intervention.intervention-table-for=Interventions table for
+body.evidence.intervention.evidence=Evidence
+body.evidence.key-points.related-systematic-reviews-key-points=Related systematic reviews: Key Points
+body.evidence.key-points.systematic-reviews-key-points=Systematic review: Key Points
+body.evidence.key-points.view-interventions=You may prefer to <a href="{0}">view the interventions page</a> of this review.
+body.evidence.question.intervention-table=Intervention Table
+body.evidence.question.intervention-table-for=Interventions table for
+body.evidence.question.beneficial=Beneficial
+body.evidence.question.likely-to-be-beneficial=Likely to be beneficial
+body.evidence.question.trade-off-between-benefits-and-harms=Trade off between benefits and harms
+body.evidence.question.unknown-effectiveness=Unknown effectiveness
+body.evidence.question.unlikely-to-be-beneficial=Unlikely to be beneficial
+body.evidence.question.likely-to-be-ineffective-or-harmful=Likely to be ineffective or harmful
+body.evidence.question.related-systematic-reviews-questions=Related systematic reviews: Questions
+body.evidence.question.systematic-reviews-questions=Systematic reviews: Questions
+body.evidence.question.evidence-scores=Evidence Scores
+body.evidence.table.table=Table
+body.evidence.table.evidence=evidence
+body.evidence.updates.updates=Updates
+body.evidence.updates.related-systematic-reviews-updates=Related systematic reviews: Updates
+body.evidence.updates.systematic-reviews-updates=Systematic review: Updates
+body.evidence.updates.found-no-relevant-review=We did not find any recent updates relevant to this review.
+body.evidence.updates.recent-articles=Clinical Evidence, in association with the McMaster PLUS surveillance system (for collection and review of the best evidence from the medical literature), has identified the following recent articles:
+body.evidence.updates.about-updates=About Updates
+body.evidence.updates.disclaimer=Disclaimer
+body.evidence.updates.categories=Categories
+body.evidence.updates.in-association-with=In association with
+body.evidence.updates.ratings=Ratings
+body.evidence.updates.rated-by-tors=Rated by doctors in
+body.evidence.updates.relevance=Relevance
+body.evidence.updates.newsworthiness=Newsworthiness
+body.evidence.updates.not-rated=not rated
+
+body.summary.overview.contents=Contents
+
+body.lexicomp.calculator-listings=Lexi-Comp Calculators Listing
+body.lexicomp.calculator-listings.lexi-calculators=Lexi Calculators
+
+body.lexicomp.drugrating-list.no-known-interaction=Data have not demonstrated either pharmacodynamic or pharmacokinetic interactions between the specified agents
+body.lexicomp.drugrating-list.no-action-needed=Data demonstrate that the specified agents may interact with each other, but there is little to no evidence of clinical concern resulting from their concomitant use.
+body.lexicomp.drugrating-list.monitor-therapy=Data demonstrate that the specified agents may interact with each other in a clinically significant manner. The benefits of concomitant use of these two medications usually outweigh the risks. An appropriate monitoring plan should be implemented to identify potential negative effects. Dosage adjustments of one or both agents may be needed in a minority of patients.
+body.lexicomp.drugrating-list.consider-therapy-modification=Data demonstrate that the two medications may interact with each other in a clinically significant manner. A patient-specific assessment must be conducted to determine whether the benefits of concomitant therapy outweigh the risks. Specific actions must be taken in order to realize the benefits and/or minimize the toxicity resulting from concomitant use of the agents. These actions may include aggressive monitoring, empiric dosage changes, choosing alternative agents.
+body.lexicomp.drugrating-list.avoid-combination=Data demonstrate that the specified agents may interact with each other in a clinically significant manner. The risks associated with concomitant use of these agents usually outweigh the benefits. These agents are generally considered contraindicated.
+body.lexicomp.interaction-monograph=Interactions - Lexi-Comp Drug Database 
+body.lexicomp.interaction-monograph.interaction-between=You are looking at the interaction between
+body.lexicomp.lexicomp.calculator-listing.sort-by-category=Sort By Category :
+body.drug-list.db=Drug Database
+body.drug-list.drugs-referenced-in-topics=The following drugs are referenced in {0} topics.
+
+body.differential-diagnosis-lib.history=History
+body.differential-diagnosis-lib.exam=Exam
+body.differential-diagnosis-lib.1st-test=1st test
+body.differential-diagnosis-lib.other-tests=Other tests
+
+body.evidence-score-lib.evidence-level-a=Evidence Level A
+body.evidence-score-lib.evidence-level-b=Evidence Level B
+body.evidence-score-lib.evidence-level-c=Evidence Level C
+body.evidence-score-lib.evidence-score-descriptions-a=Systematic reviews (SRs) or randomized controlled trials (RCTs) of &gt;200 participants.
+body.evidence-score-lib.evidence-score-descriptions-b=Randomized controlled trials (RCTs) of &lt;200 participants, methodologically flawed RCTs of &gt;200 participants, methodologically flawed systematic reviews (SRs) or good quality observational (cohort) studies.
+body.evidence-score-lib.evidence-score-descriptions-c=Poor quality observational (cohort) studies or methodologically flawed randomized controlled trials (RCTs) of &lt;200 participants.
+body.evidence-score-lib.more-info=More info from BMJ Clinical Evidence
+
+body.general-lib.see-our-comprehensive-coverage=see our comprehensive coverage of {0}
+body.general-lib.view-image=View image
+
+body.guideline-lib.summary=Summary
+body.guideline-lib.published-by=Published by:
+body.guideline-lib.last-published=Last published:
+body.guideline-lib.international=International
+
+body.oak-general-lib.related-systematic-reviews-questions=Related systematic reviews: Questions
+body.oak-general-lib.systematic-reviews-questions=Systematic reviews: Questions
+body.oak-general-lib.intervention-table=Intervention Table
+
+#Customer services
+customer.services.menu=Customer Services Menu
+
+
+#Admin pages
+admin.menu=Admin Menu
+admin.menu.para1=Select an option from the menu below:
+admin.menu.reload=Reload
+admin.menu.updated-monographs=Recently updated monographs
+admin.menu.bnf-drug-check=BNF Drug Check (Compare BNF source files)
+admin.menu.monograph-drug-check=Monograph Drug Check
+admin.menu.drugs-finder=Drugs Finder (Find monographs containing particular drugs)
+admin.menu.xml-store-statistics=XML Store statistics
+admin.menu.rps-drugs-update=RPS Drugs Update
+admin.menu.inst-update=Institution Update
+admin.bnfdrugscheck=BNF Drugs Check
+admin.bnfdrugscheck.treatment=Treatment
+admin.bnfdrugscheck.bnf-dmd=BNF DMD
+admin.bnfdrugscheck.bnf-hierarchical=BNF Hierarchical
+admin.drugsfinderpage=Drugs Finder
+admin.drugsfinderpage.para1=Upload the list of drugs to search for.
+admin.drugsfinderpage.para2=Select file to upload:
+admin.drugsfinderresults=Drugs Finder Results
+admin.drugsfinderresults.para1=Below are the saved list of monographs that contain the list of drugs previously uploaded.<br/><a href="{0}">Click here</a> to upload a new spreadsheet and run a new query. 
+admin.drugsfinderresults.para2=The following monographs contained the drugs listed in the uploaded spreadsheet:-
+admin.drugsfinderresults.bnf-drugs-check=BNF Drugs Check
+admin.drugsfinderresults.monograph=Monograph
+admin.drugsfinderresults.drugs=Drugs
+admin.drugsfinderresults.total=Total #
+admin.drugsuploadpage=RPS Drugs Update
+admin.drugsuploadpage.para1=Select the latest update file and click Update.
+admin.drugsuploadpage.para2=Select file to upload:
+admin.evidence-list=Browse Clinical Evidence Reviews
+admin.evidence-list.full-list=Full CE review list
+admin.evidence-list.total=Total: {0} reviews.
+admin.evidence-list.id=ID
+admin.evidence-list.title=Title
+admin.evidence-list.last-published=Last Published
+admin.evidence-list.search-date=Search Date
+admin.monograph-list.full-list=Full monograph list
+admin.monograph-list.total=Total: {0} monographs(<a href="latestMonograph.html?refresh=true">refresh list</a>)
+admin.monograph-list.id=ID
+admin.monograph-list.title=Title
+admin.monograph-list.type=Type
+admin.monograph-list.export-date=Export Date
+admin.monograph-list.last-updated=Last Updated
+admin.monograph-list.amended-date=Amended Date
+admin.monograph-list.last-reviewed=Last Reviewed
+admin.monographdrugscheck=Monograph Drugs Check
+admin.monographdrugscheck.para1=Select a monograph from the list below:
+admin.monographdrugscheck.monograph=Monograph:
+admin.monographdrugscheck.treatments=Treatments
+admin.monographdrugscheck.bnf=BNF
+admin.monographdrugscheck.martindale=Martindale
+admin.monographdrugscheck.tx-details=Tx Details
+admin.reload=Reload Manager
+admin.reload.all=Reload All (excluding search objects)
+admin.reload.individual=Reload individual objects:
+admin.reload.individual-monogaph-by-id=Reload and re-index an individual monograph by ID:
+admin.reload.enter-monograph-id=Enter monograph ID:
+admin.reload.enter-content-library=Enter content Library:
+admin.reload.individual-ce-by-id=Reload and re-index an individual CE review by ID:
+admin.reload.enter-ce-id=Enter systematic-review ID:
+admin.xhive-data-source.data-sources-available=Available data sources: {0}
+admin.xhive-data-source.no-data-source=DATA SOURCES EXHAUSTED: NO CURRENT DATA SOURCE AVAILABLE
+admin.xhive-data-source.data-source-in-use=Data source in use: {0}
+admin.xhive-data-source.data-sources=Data sources
+admin.xhive-data-source.data-source=Data Source
+admin.xhive-data-source.status=Status
+admin.xhive-data-source.location=Location
+admin.xhive-data-source.cache-pages=Cache Pages
+admin.xhive-data-source.timeout=Timeout
+admin.xhive-data-source.in-use=IN USE
+admin.xhive-data-source.failed=FAILED
+admin.xhive-data-source.switch-to=switch to
+admin.xhive-data-source.total-session-in-pool=Total sessions in pool:
+admin.xhive-data-source.active-sessions=Number of active sessions:
+admin.xhive-data-source.idle-sessions=Number of idle sessions:
+admin.xhive-data-source.note=Note: one active session is required to generate this page
+admin.xhive-data-source.statistics=Statistics
+admin.xhive-data-source.statistic=Statistic
+admin.xhive-data-source.value=Value
+admin.xhive-data-source.para1=Statistics are for the current in-use data source
+admin.xhive-data-source.para2=Unable to get statistics - current data source unavailable.
+admin.xhive-data-source.reload=reload
+admin.edit-spotlights=Edit Spotlights
+admin.edit-spotlights.create=Create new spotlight
+admin.edit-spotlights.in-the-spotlight=In the Spotlight
+admin.edit-spotlights.saved-spotlights=Saved Spotlights
+admin.edit-spotlights.title=Title
+admin.edit-spotlights.edit-content=Edit content below
+admin.edit-spotlights.show-if-user=Show if user is
+admin.edit-spotlights.not-logged-in=Not logged in
+admin.edit-spotlights.individual=Individual
+admin.edit-spotlights.institutional=Institutional
+admin.edit-spotlights.active=Active
+admin.edit-whats-new.edit-marketing=Edit marketing content
+admin.edit-whats-new.para1=You have not set up any monographs to be displayed in the new/updated section on the homepage.
+admin.edit-whats-new.para2=&nbsp; Add upto 6 monographs to be displayed on the homepage.
+
+#RSS page
+rss.para=Summary of new and updated conditions for {0}, from the BMJ Publishing Group.
+
+#Competition
+competition.invalid.answer=Please enter your answer.
+competition.invalid.sendertitle=Please enter your title.
+competition.invalid.senderfirstname=Please enter your first name.
+competition.invalid.senderlastname=Please enter your last name.
+competition.invalid.senderinstitution=Please enter the name of your institution.
+competition.invalid.email=Please enter a valid email address.
+competition.label.senderanswer=Answer
+competition.label.sendertitle=Title
+competition.label.senderfirstname=First Name
+competition.label.senderlastname=Last Name
+competition.label.senderposition=Position
+competition.label.senderinstitution=Institution
+competition.label.senderemail=Email address
+competition.label.keepmeuptodate=Yes, please keep me up to date with the BMJ and relevant products and services from the BMJ and BMJ Group ** (some emails may feature advertising from pharmaceutical companies). 
+competition.label.tandc=By registering you are agreeing to our competition <a target="_blank" href="{0}">terms and conditions</a> and <a target="_blank" href="{1}">privacy policy</a> .
+competition.label.completeform=Please complete the following fields and submit your answer
+competition.button.submit=Submit
+
+yes=yes
+no=no

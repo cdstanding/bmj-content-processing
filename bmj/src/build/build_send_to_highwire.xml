@@ -1,0 +1,528 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="send-to-hw" name="Send_to_Highwire">
+    <description>
+        Overview:
+        
+        This build module creates an article package ready for delivery to Highwire Express.
+        
+        This build is called in '\\bmjprod1\Users\la_bmjprod\dev\bmj\build_UploadtoBMJCMS.xml' 
+        when any of the following batch files are used to launch the process:
+        
+        - \\bmjprod1\Users\la_bmjprod\dev\bmj\SendtoHW-Embargo_server.bat
+        - \\bmjprod1\Users\la_bmjprod\dev\bmj\SendtoHW-Green-to-Go_server.bat
+        - \\bmjprod1\Users\la_bmjprod\dev\bmj\SendtoHW-post-prod-resend_server.bat
+        
+        The value that determines the process is set in the batch file by the 'launchedby' property.
+        
+        Information about the article is collected from an 'autobatch.xml' and this is used to later on
+        in the process.
+        
+        An auto PDF is created and stamped with Crossref logo and publication metadata is embedded.
+        
+        The article files are finally zipped up then packaged in
+        
+        \\bmjprod1\Users\la_bmjprod\dev\bmj\uploadtoHighwire
+        
+        (see here for example folders \\bmjprod1\Users\la_bmjprod\dev-test\bmj\uploadtoHighwire-test)
+        
+        to await pickup from a scheduled FTP process 'build_scheduled_ftp_highwire'.
+        
+        ------------------------------
+        
+        Description by linear step:
+        
+        [1] Check for autobatch file
+        
+        [2] If autobatch is present the list of collected autobatch filepaths is fed into a sequential loop in order to start 
+        processing individual articles
+        
+        [3] Information is collected about the article using XPath on the NLM XML
+        
+        [4] Data supplement notes removed from XML using XSLT to be delivered to Highwire
+        
+        [5] Existing PDF is checked for, condition is set and, if true 'pdf-present' property is set and original PDF is copied 
+        to temp PDF folder
+        
+        [6] Graphics collecting and conversion using Imagemagick
+        
+        [7] Create directives, Go file and convert NLM XML for Highwire
+        
+        [7.1] Check for existing, externally typeset PDF before creating preview PDF, stamping with Crossmark logo and embedding
+        publication metadata.
+        
+        - If no PDF is present then information is gathered from the directives file. The values of the 'release-protocol' will 
+        determine what information needs to be gathered as this will set the values passed into the XSLFO and PDF stamping and 
+        metadata ebmedding processes
+        
+        - If a PDF is already present then this process is skipped 
+        
+        Note: More detailed information is in comments next to the relevant code as this all gets a bit complicated
+        
+        [8] Files are zipped then copied to the UploadtoHighwire folder ready for scheduled task to send these to Highwire via FTP
+        
+        
+    </description>
+    
+    <target name="send-to-hw" depends="process-and-send-to-hw-folder"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    <taskdef name="schematron" classname="com.schematron.ant.SchematronTask" classpath="lib/ant-schematron.jar"/>
+    
+    <target name="process-and-send-to-hw-folder">
+        
+        <echo message="----------This is the UploadtoBMJCMS folder: ${uploadtoBMJCMS}"/>
+        <!-- [1] Check for autobatch file and set a condition if present-->
+        <fileset dir="${uploadtoBMJCMS}/_autobatch_" id="autobatch-found">
+            <include name="bmj.${elocator}.xml"/>
+        </fileset>
+        <property name="temp-hwexpress" value="${temp-instance}/hwexpress"/>
+        
+        <mkdir dir="${temp-hwexpress}"/>
+        
+        <echo message="---------- THIS IS THE SOURCE OF THE ARTICLE!!!!! ${article-path}"/>
+        
+        <!-- A condition is set if autobatch is present -->
+        <echo message="----------Is the autobatch xml available?: ${autobatch-present}"/>
+        <pathconvert refid="autobatch-found" property="autobatch-filepaths"/>
+        <echo message="----------These are the autobatch filepaths: ${autobatch-filepaths}"/>
+        <propertyregex property="autobatch-files" input="${autobatch-filepaths}" regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" replace="\4"/>
+        <echo message="----------This is the list of autobatch files ${autobatch-files}"/>
+        
+        <if>
+            <!-- [2] If autobatch is present the list of collected autobatch filepaths is fed into
+            a sequential loop in order to start processing individual articles -->
+            <isset property="autobatch-file-present"/>
+            <then>
+                <for list="${autobatch-filepaths}" param="autobatch-filepath" delimiter=";">
+                    <sequential>
+                        <var name="article-name" unset="true"/>
+                        <var name="article-name-no-ext" unset="true"/>
+                        <var name="autobatch-file" unset="true"/>
+                        <var name="data-supps-available" unset="true"/>
+                        <var name="data-supps-xml" unset="true"/>
+                        <var name="data-supps-xml-sorted" unset="true"/>
+                        <var name="date-year" unset="true"/>
+                        <var name="date-month" unset="true"/>
+                        <var name="date-day" unset="true"/>
+                        <var name="elocator" unset="true"/>
+                        <var name="elocator-bmj" unset="true"/>
+                        <var name="embargo-date" unset="true"/>
+                        <var name="graphics-xml" unset="true"/>
+                        <var name="graphics-xml-sorted" unset="true"/>
+                        <var name="item" unset="true"/>
+                        <var name="location-article" unset="true"/>
+                        <var name="location-article-elocator" unset="true"/>
+                        <var name="oa" unset="true"/>
+                        <var name="open-access" unset="true"/>
+                        <var name="pdf-present" unset="true"/>
+                        <var name="pdf-in-folder" unset="true"/>
+                        <var name="release-protocol" unset="true"/>
+                        
+                        <!-- [3] Information is collected about the article -->
+                        <echo message="----------This is the autobatch filepath: @{autobatch-filepath}"/>
+                        <propertyregex property="article-name" input="@{autobatch-filepath}" 
+                            regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" replace="\4"/>
+                        <echo message="----------This is an autobatch file: ${article-name}"/>
+                        <propertyregex property="article-name-no-ext" input="${article-name}" regexp="^(.+)(\.xml)" replace="\1"/>
+                        <echo message="----------This is the article name with no extension: ${article-name-no-ext}"/>
+                        <xpath file="@{autobatch-filepath}" expression="//item/@xlink:href" outputproperty="item">
+                            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+                        </xpath>
+                        <echo message="----------This is the article location: ${item}"/>
+                        <propertyregex property="location-article" input="${item}" regexp="^(\..\/)(.+)" replace="\2"/>
+                        <echo message="----------This is the article location with article: ${uploadtoBMJCMS}/${location-article}"/>
+                        
+                        <xpath file="${uploadtoBMJCMS}/${location-article}" expression="//elocation-id/text()" outputproperty="elocator"/>
+                        <property name="elocator-bmj" value="bmj.${elocator}"/>
+                        <echo message="----------This is the elocator with bmj suffix: ${elocator-bmj}"/>
+                        <copy file="${uploadtoBMJCMS}/${location-article}" tofile="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}.xml"/>
+                        
+                        <!-- [4] Existing PDF is checked for, condition is set and, if true, 'pdf-present' property is set
+                        and original PDF is copied to temp PDF folder -->
+                        <if>
+                            <available file="${temp-instance}/uploadtoBMJCMS/pdfs/bmj.${elocator}.pdf"/> 
+                            <then>
+                                <fileset dir="${temp-instance}/uploadtoBMJCMS/pdfs" id="pdf-found">
+                                    <include name="${elocator-bmj}.pdf"/>
+                                </fileset>
+                                <condition property="pdf-present">
+                                    <resourcecount refid="pdf-found" when="greater" count="0"/>
+                                </condition>
+                                <echo message="---------- Was a PDF found in the folder? ${pdf-present}"/>
+                            </then>
+                        </if>
+                        <if>
+                            <isset property="pdf-present"/>
+                            <then>
+                                <pathconvert refid="pdf-found" property="pdf-in-folder"/>
+                                <echo message="----------This was the PDF found in the folder: ${pdf-in-folder}"/>
+                                <propertyregex property="pdf-file" input="${pdf-in-folder}"
+                                    regexp=".*(\\)(.+)" 
+                                    replace="\2" 
+                                    global="true"/>
+                                <copy file="${pdf-in-folder}" todir="${temp-hwexpress}/${elocator-bmj}/pdf"/>
+                            </then>
+                        </if>
+                        
+                        <!-- [5] Highwire tweaks -->
+                        <xslt in="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}.xml" 
+                            out="${temp-hwexpress}/${elocator-bmj}/jats-xml/transformed/${elocator-bmj}.xml"
+                            style="${xslt}/highwire-tweaks.xsl" processor="trax" force="true"
+                            extension=".xml" >
+                            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                            <param name="elocator" expression="${elocator}"/>
+                        </xslt>
+                        <delete file="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}.xml"/>
+                        <move file="${temp-hwexpress}/${elocator-bmj}/jats-xml/transformed/${elocator-bmj}.xml"
+                            todir="${temp-hwexpress}/${elocator-bmj}/jats-xml"/>
+                        <delete dir="${temp-hwexpress}/${elocator-bmj}/jats-xml/transformed"/>
+                        
+                        <!-- [6] Graphics collecting and conversion using Imagemagick -->
+                        <!--Checks article XML for any graphic file references then looks for corresponding graphics in the graphics folder if so-->
+                        <xpath file="${uploadtoBMJCMS}/${location-article}" expression="//graphic/@xlink:href" outputproperty="graphics-xml">
+                            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+                        </xpath>
+                        <sortlist property="graphics-xml-sorted" value="${graphics-xml}" delimiter=","/>
+                        <echo message="----------This is the list of sorted graphics ${graphics-xml-sorted}"/>
+                        
+                        <for list="${graphics-xml-sorted}" param="graphic-file-xml">
+                            <sequential>
+                                <var name="graphic-in-folder" unset="true"/>
+                                <var name="graphic-file-folder" unset="true"/>
+                                <var name="graphic-file-with-suffix" unset="true"/>
+                                <echo message="----------This is the location of the graphics for the article ${temp-uploadtobmjcms}/graphics"/>
+                                <echo message="----------This graphic file was found in the XML: @{graphic-file-xml}"/>
+                                <fileset dir="${temp-uploadtobmjcms}/graphics" id="graphic-found">
+                                    <include name="@{graphic-file-xml}.*"/>
+                                </fileset>
+                                <pathconvert refid="graphic-found" property="graphic-in-folder"/>
+                                <echo message="----------This is the graphic found in the folder: ${graphic-in-folder}"/>
+                                <copy file="${graphic-in-folder}" todir="${temp-hwexpress}/${elocator-bmj}/graphics"/>
+                                
+                                <propertyregex property="graphic-file-with-suffix" input="${graphic-in-folder}" 
+                                    regexp=".*?(.+)(\\)(.+)(\.)(.+)(\.)(.+)" 
+                                    replace="\3\4\5\6\7" 
+                                    global="true"/>
+                                
+                                <!-- [6.2] Graphics are converted to JPG for use in the PDF -->
+                                <echo message="----------This is the graphic file with suffix: ${graphic-file-with-suffix}"/>
+                                <!-- ImageMagick -->
+                                <mkdir dir="${temp-hwexpress}/${elocator-bmj}/pdfgraphics"/>
+                                <echo message="----------Coverting graphics in ${temp-hwexpress}/${elocator-bmj}/graphics"/>
+                                <exec executable="magick" failonerror="false">
+                                    <arg value="-density"/>
+                                    <arg value="300"/>
+                                    <arg value="${temp-hwexpress}/${elocator-bmj}/graphics/${graphic-file-with-suffix}"/>
+                                    <arg value="-resize"/>
+                                    <arg value="1000X1000"/>
+                                    <arg value="-layers"/>
+                                    <arg value="flatten"/>
+                                    <arg value="${temp-hwexpress}/${elocator-bmj}/pdfgraphics/@{graphic-file-xml}.jpg"/>
+                                </exec>
+                                
+                            </sequential>
+                        </for>
+                        <mkdir dir="${temp-hwexpress}/${elocator-bmj}/pdfgraphics"/>
+                        
+                        <!-- [7] Create directives, Go file and convert NLM XML for Highwire -->
+                        <xpath file="${temp-uploadtobmjcms}/${location-article}" 
+                            expression="//journal-id[@journal-id-type='hwp']/text()" 
+                            outputproperty="journal-id"/>
+                        
+                        <if>
+                            <equals arg1="${ppr}" arg2="true"/>
+                            <then>
+                                <xslt in="@{autobatch-filepath}" out="${temp-hwexpress}/${elocator-bmj}/go.xml"
+                                    style="${xslt}/go-ppr.xsl" processor="trax" force="true" extension=".xml">
+                                    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                                    <param name="peid" expression="${peid}"/>
+                                </xslt>
+                            </then>
+                            <else>
+                                <xslt in="@{autobatch-filepath}" out="${temp-hwexpress}/${elocator-bmj}/go.xml"
+                                    style="${xslt}/go.xsl" processor="trax" force="true" extension=".xml">
+                                    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                                    <param name="journal-id" expression="${journal-id}"/>
+                                </xslt>
+                            </else>
+                        </if>
+                        
+                        <xslt in="@{autobatch-filepath}" out="${temp-hwexpress}/${elocator-bmj}/directives.xml"
+                            style="${xslt}/directives.xsl" processor="trax" force="true" extension=".xml">
+                            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                            <param name="journal-id" expression="${journal-id}"/>
+                        </xslt>
+                        
+                        <echo message="---------- Converting XML for Highwire!"/> 
+                        
+                        <xslt in="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}.xml" 
+                            out="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}-transformed.xml"
+                            style="${xslt}/convert-for-highwire.xsl" processor="trax" force="true" extension=".xml">
+                            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                            <param name="autobatch-file" expression="@{autobatch-filepath}"/>
+                            <param name="elocator" expression="${elocator-bmj}"/>
+                            <param name="journal-id" expression="${journal-id}"/>
+                            <param name="ppr" expression="${ppr}"/>
+                            <param name="valid-date-string" expression="${valid-date-string}"/>
+                        </xslt>
+                        <delete file="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}.xml"/>
+                        <move file="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}-transformed.xml" 
+                            tofile="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}.xml"/>
+                        
+                        <if>
+                            <!-- [7.1] Check for existing, externally typeset PDF before creating preview PDF, 
+                                stamping with Crossmark logo and embedding publication metadata.
+                                
+                                - If no PDF is present then information is gathered from the directives file. The
+                                values of the 'release-protocol' will determine what information needs to be
+                                gathered as this will set the values passed into the XSLFO and PDF stamping
+                                and metadata ebmedding processes.
+                                
+                                - If a PDF is already present then this process is skipped 
+                            
+                            Note: More detailed information is in comments next to the relevant code as this all 
+                            gets a bit complicated -->
+                            <not>
+                                <isset property="pdf-present"/>
+                            </not>
+                            <then>
+                                
+                                <xpath 
+                                    file="${temp-hwexpress}/${elocator-bmj}/directives.xml" 
+                                    expression="//release_protocol/text()" 
+                                    outputproperty="release-protocol"/>
+                                <echo message="---------- This is the release protocol: ${release-protocol}"/>
+                                
+                                
+                                <if>
+                                    <equals arg1="after_embargo_without_approval" arg2="${release-protocol}"/>
+                                    <then>
+                                        <xpath 
+                                            file="${temp-hwexpress}/${elocator-bmj}/directives.xml" 
+                                            expression="//release_datetime/date/year/text()" 
+                                            outputproperty="date-year"/>
+                                        <echo message="---------- This is the year: ${date-year}"/>
+                                        
+                                        <xpath 
+                                            file="${temp-hwexpress}/${elocator-bmj}/directives.xml" 
+                                            expression="//release_datetime/date/month/text()" 
+                                            outputproperty="date-month"/>
+                                        <echo message="---------- This is the month: ${date-month}"/>
+                                        
+                                        <xpath 
+                                            file="${temp-hwexpress}/${elocator-bmj}/directives.xml" 
+                                            expression="//release_datetime/date/day/text()" 
+                                            outputproperty="date-day"/>
+                                        <echo message="---------- This is the day: ${date-day}"/>
+                                        
+                                        <property name="embargo-date" value="${date-year}/${date-month}/${date-day}"/>
+                                    </then>
+                                </if>
+                                <echo message="---------- This is the embargo date: ${embargo-date}"/>
+                                
+                                <!-- Create a date stamp for pdf stamp as last resort back up if no other dates passed through   -->
+                                <tstamp>
+                                     <format property="mod.stamp" pattern="yyyy/MM/dd"/>
+                                </tstamp>
+                                
+                                <!-- Property is set for go-on-green if article is for G2G -->
+                                <if>
+                                    <equals arg1="go_on_green" arg2="${release-protocol}"/>
+                                    <then>
+                                        <property name="go-on-green" value="go-on-green"/>
+                                    </then>
+                                </if>
+                                
+                                <if>
+                                    <equals arg1="${embargo.set}" arg2="y"/>
+                                    <then>
+                                        <property name="pubdate" value="${embargo-date}"/>
+                                    </then>
+                                </if>
+                                
+                                <if>
+                                    <equals arg1="${embargo.set}" arg2="n"/>
+                                    <then>
+                                        <property name="pubdate" value="${mod.stamp}"/>
+                                    </then>
+                                </if>
+                                
+                                <!-- XSLFO is created then transformed into a PDF using XEP -->
+                                <echo message="---------- XSLT for FO"/>
+                                <xslt in="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}.xml" 
+                                    out="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}-FO.xml"
+                                    style="${xslfo}/jats/article-fo-1-0.xsl" processor="trax" force="true" extension=".xml">
+                                    <param name="logo-location-path" expression="${logos}"/>
+                                    <param name="batchPubDate" expression="${pubdate}"/>
+                                    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                                </xslt>
+
+                                <echo message="---------- XEP the FO-XML to get PDF"/>                              
+                                <exec executable="${xep}\xep.bat">
+                                    <arg value="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}-FO.xml"/>
+                                </exec>
+                                
+                                <!-- PDF stamping and marking starts here -->
+                                
+                                <!-- XSLT is used to create XMP file -->
+                                
+                                <echo message="---------- Get XMP XML from JATS XML"/>
+                                <xslt in="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}.xml" 
+                                    out="${temp-hwexpress}/${elocator-bmj}/xmp.xml"
+                                    style="${xslt}/bmjcms-make-crossmark-xmp.xsl"
+                                    processor="trax" force="true" extension=".xml">
+                                    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                                    
+                                    <!-- Needs embargo date if article is embargoed -->
+                                    <!-- Needs date from XML if not embargo -->
+                                    <!-- Needs current date if none available from either -->
+                                    <param unless="${go-on-green}" expression="${embargo-date}" name="this.pdfdate" />
+                                    <param expression="${mod.stamp}" name="backup.pdfdate"/>
+                                </xslt>
+                                
+                                <!-- Interrogate XMP XML with XPATH to get Major Version Date -->
+                                <echo message="---------- Get info you need from XMP file with XPATH"/>                              
+                                <xpath 
+                                    expression="//crossmark:MajorVersionDate[1]/text()" 
+                                    file="${temp-hwexpress}/${elocator-bmj}/xmp.xml" 
+                                    outputproperty="this.MajorVersionDate">
+                                    <namespace prefix="crossmark" uri="http://crossref.org/crossmark/1.0/"/>
+                                </xpath>
+                                
+                                <!-- Run some Java code to make PDF stamp for crossmark logo and pass in required parameters (look at original code) -->
+                                <!-- apply pdfstamp--> 
+                                <echo message="---------- PDF stamped with CrossRef java code"/>                              
+                                <java jar="${jar}/pdfstamp.jar" failonerror="true" fork="true">
+                                    <classpath>
+                                        <pathelement location="${jar}/pdfstamp.jar"/>
+                                    </classpath>
+                                    <arg value="-i"/>
+                                    <arg value="${logos}/CROSSMARK_Color_square.jpg"/>
+                                    <arg value="-d"/>
+                                    <arg value="700"/>
+                                    <arg value="-v"/>
+                                    <arg value="-l"/>
+                                    <arg value="60,665"/>
+                                    <arg value="-p"/>
+                                    <arg value="1"/>
+                                    <arg value="-u"/>
+                                    <arg value="http://crossmark.crossref.org/dialog/?doi=10.1136/${elocator-bmj}&amp;domain=pdf&amp;date_stamp=${this.MajorVersionDate}"/>
+                                    <arg value="${temp-hwexpress}/${elocator-bmj}/jats-xml/${elocator-bmj}-FO.pdf"/>
+                                </java>
+                                
+                                <!-- New stamped PDF is created so will need to do some moving here -->
+                                <echo message="---------- New stamped PDF is created so will need to do some moving here"/>
+                                <move tofile="${temp-hwexpress}/${elocator-bmj}/pdf/${elocator-bmj}.pdf" overwrite="true">
+                                 <fileset dir="${temp-hwexpress}/${elocator-bmj}/jats-xml">
+                                    <include name="*_stamped*.pdf"/>
+                                 </fileset>
+                                </move>
+                                
+                                <!-- Run Java code to make PDF mark and pass in required parameters (look at original code) -->
+                                <!-- apply crossmark--> 
+                                <echo message="---------- PDF mark with CrossRef java code START"/>
+                                <java jar="${jar}/pdfmark.jar" failonerror="true" fork="true">
+                                    <classpath>
+                                        <pathelement location="${jar}/pdfmark.jar"/>
+                                    </classpath>
+                                    <arg value="-f"/>
+                                    <arg value="-p"/>
+                                    <arg value="${temp-hwexpress}/${elocator-bmj}/xmp.xml"/>
+                                    <arg value="${temp-hwexpress}/${elocator-bmj}/pdf/${elocator-bmj}.pdf"/>
+                                </java>
+                                <echo message="---------- PDF mark with CrossRef java code END"/>
+                                
+                                <!-- New Crossmark logo is added so will need to do some moving here -->
+                                <echo message="---------- Move marked PDF file"/>                              
+                                
+                                <move tofile="${temp-hwexpress}/${elocator-bmj}/pdf/${elocator-bmj}.pdf" overwrite="true">
+                                 <fileset dir="${temp-hwexpress}/${elocator-bmj}/pdf">
+                                    <include name="*_xmp*.pdf"/>
+                                 </fileset>
+                                </move>
+                                <!-- ======================================================= -->
+                                
+                                <!--<delete file="${temp-hwexpress}/${elocator-bmj}/nlmxml/${elocator-bmj}-FO.xml"/>
+                                <move file="${temp-hwexpress}/${elocator-bmj}/nlmxml/${elocator-bmj}-FO.pdf" 
+                                    tofile="${temp-hwexpress}/${elocator-bmj}/pdfs/${elocator-bmj}.pdf"/>-->
+                                
+                            </then>
+                        </if>
+                        
+                        <!-- [8] Files are zipped then copied to the UploadtoHighwire folder ready for scheduled
+                        task to send these to Highwire via FTP-->
+                        
+                        
+                        <!-- XML file and graphics zipping -->
+                        <zip destfile="${temp-hwexpress}/${elocator-bmj}/${elocator-bmj}.zip">
+                            <fileset dir="${temp-hwexpress}/${elocator-bmj}">
+                                <exclude name="**/pdfgraphics/**"/>
+                                <exclude name="directives.xml"/>
+                                <exclude name="go.xml"/>
+                                <exclude name="xmp.xml"/>
+                                <exclude name="**/*-FO.xml"/>
+                                <exclude name="**/*-FO.pdf"/>
+                            </fileset>
+                        </zip>
+                        
+                        <if>
+                            <equals arg1="${ppr}" arg2="true"/>
+                            <then>
+                                <move todir="${uploadtoHighwire}/${elocator-bmj}">
+                                    <fileset dir="${temp-hwexpress}/${elocator-bmj}">
+                                        <include name="${elocator-bmj}.zip"/>
+                                        <include name="go.xml"/>
+                                    </fileset>
+                                </move>
+                            </then>
+                            <else>
+                                <move todir="${uploadtoHighwire}/${elocator-bmj}">
+                                    <fileset dir="${temp-hwexpress}/${elocator-bmj}">
+                                        <include name="${elocator-bmj}.zip"/>
+                                        <include name="directives.xml"/>
+                                        <include name="go.xml"/>
+                                    </fileset>
+                                </move>
+                            </else>
+                        </if>
+                        
+                        <!-- Data supplement zipping -->
+                        <if>
+                            <available file="${temp-instance}/uploadtoBMJCMS/data-supps/${elocator-bmj}" type="dir"/>
+                            <then>
+                                <!-- ZIP up folders for each data supplement -->
+                                <zip destfile="${temp-uploadtobmjcms}/data-supps/${elocator-bmj}/${elocator-bmj}.zip" 
+                                    basedir="${temp-uploadtobmjcms}/data-supps/${elocator-bmj}"/>
+                                <copy file="${xml}/go-data-supp.xml" todir="${temp-uploadtobmjcms}/data-supps/${elocator-bmj}"/>
+                                
+                                <!-- Copy only the files required to send to Highwire -->
+                                
+                                <copy 
+                                    file="${temp-uploadtobmjcms}/data-supps/${elocator-bmj}/${elocator-bmj}.zip" 
+                                    todir="${temp-hwexpress}/${elocator-bmj}-ds"/>
+                                <copy 
+                                    file="${temp-uploadtobmjcms}/data-supps/${elocator-bmj}/go-data-supp.xml" 
+                                    tofile="${temp-hwexpress}/${elocator-bmj}-ds/go.xml"/>
+                                
+                                <copy todir="${uploadtoHighwire}">
+                                    <fileset dir="${temp-hwexpress}">
+                                        <include name="${elocator-bmj}-ds/${elocator-bmj}.zip"/>
+                                        <include name="${elocator-bmj}-ds/go.xml"/>
+                                    </fileset>
+                                </copy>
+                                
+                            </then>
+                        </if>
+                        
+                    </sequential>
+                </for>
+            </then>
+        </if>
+    </target>
+    
+    
+</project>

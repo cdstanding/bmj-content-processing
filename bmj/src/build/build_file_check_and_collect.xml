@@ -1,0 +1,280 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project name="build_xml_file_collector" default="file-check-and-collect">
+    <target name="file-check-and-collect">
+        <description>
+            This module searches for any external binary files referenced in the XML such as graphics or 
+            supplementary files for example. This runs within a sequential loop in the 'build process_article'
+            build. Any variables are reset at the beginning of that loop.
+            
+            1) If the existence of the binary file is expected based upon the parameter passed in from
+            the launching batch file then a process is run to check for references to any binary files in the XML.
+            
+            2) If any references are found in the XML, this will check the binary file folder to make a list of
+            available files. Whether files are found or not will then set a condition to say whether files are available or not.
+            
+            3) If files are available then this will then collect the binary files, create metadata txt files if necessary and convert
+            any graphics if required as part of the main process.
+        </description>
+        <echo
+            message="---------- Are there any graphic files expected in this process? ${graphic-files-in-process}"/>
+        <if>
+            <equals arg1="${graphic-files-in-process}" arg2="true"/>
+            <then>
+                <echo message="---------- Checking the XML for graphic files..."/>
+                <!-- /////////////////////////////////////// -->
+                <!-- Check for availability of graphic files -->
+                <!-- /////////////////////////////////////// -->
+                
+                <property name="graphic-xref" value="//graphic/@xlink:href"/>
+                
+                <xpath file="${article-folder}\jats-xml\${jats-xml-name}.xml"
+                    expression="//graphic/@xlink:href" outputproperty="graphics-xml">
+                    <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+                </xpath>
+                
+                <sortlist property="graphics-xml-sorted" value="${graphics-xml}" delimiter=","/>
+                
+                <condition property="graphics-present" else="false">
+                    <length string="${graphics-xml-sorted}" when="greater" length="0"/>
+                </condition>
+                
+                <echo message="---------- Graphics found in the XML? ${graphics-present}"/>
+                <echo message="----------"/>
+                <!-- Are there any graphics referenced in the XML and, if so, are there corresponding graphics in the article graphics folder? -->
+                <if>
+                    <equals arg1="${graphics-present}" arg2="true"/>
+                    <then>
+                        <echo
+                            message="---------- These are the sorted graphics found in the XML: ${graphics-xml-sorted}"/>
+                        
+                        <mkdir dir="${temp-article-folder}/graphics-found"/>
+                        
+                        <!-- Create static XML file for each article to insert list of data supplements found in the folder -->
+                        <echoxml file="${temp-article-folder}/graphics-found/graphics-found-info.xml">
+                            <graphics>
+                                <graphics-xml></graphics-xml>
+                                <graphics-folder></graphics-folder>
+                            </graphics>
+                        </echoxml>
+                        
+                        <for list="${graphics-xml-sorted}" param="graphic-file-xml">
+                            <sequential>
+                                <echo message="---------- This graphic file was found in the XML: @{graphic-file-xml}"/>
+                                <echo message="----------"/>
+                                
+                                <xmltask 
+                                    source="${temp-article-folder}/graphics-found/graphics-found-info.xml" 
+                                    dest="${temp-article-folder}/graphics-found/graphics-found-info.xml"
+                                    encoding="utf-8"
+                                    expandEntityReferences="false">
+                                    <insert path="graphics/graphics-xml" >
+                                        <![CDATA[<graphic-xml>@{graphic-file-xml}</graphic-xml>]]>
+                                    </insert>
+                                </xmltask>
+                            </sequential>
+                        </for>
+                        
+                        <!--Graphics collecting-->
+                        <!--Checks article XML for any graphic file references then looks for corresponding graphics in the graphics folder if so-->
+                        <echo message="----------"/>
+                        <echo message="---------- Collecting graphics..."/>
+                        <echo message="----------"/>
+                        
+                        <condition property="graphics-folder-available" else="false">
+                            <available file="${article-folder}/graphics" type="dir"/>
+                        </condition>
+                        
+                        <echo message="---------- Is the graphics folder available in the content store? ${graphics-folder-available}"/>
+                        
+                        <if>
+                            <equals arg1="${graphics-folder-available}" arg2="true"/>
+                            
+                            <then>
+                                <fileset dir="${article-folder}/graphics" id="graphics-found-folder">
+                                    <exclude name="Thumbs.db"/>
+                                </fileset>
+                                
+                                <pathconvert property="graphics-found-in-folder" refid="graphics-found-folder" setonempty="false"/>
+                                
+                                <echo message="---------- These are the graphics found in the folder: ${graphics-found-in-folder}"/>
+                                <echo message="---------- "/>
+                                
+                                <condition property="graphics-found-folder" else="false">
+                                    <isfalse value="${graphics-found-in-folder}"/>
+                                </condition>
+                                <echo message="---------- Are there graphics in the folder? ${graphics-found-folder}"/>
+                                
+                                <if>
+                                    <isset property="graphics-found-folder"/>
+                                    <then>
+                                        <for list="${graphics-found-in-folder}" param="graphic-file-folder" delimiter=";">
+                                            <sequential>
+                                                <var name="graphic-file" unset="true"/>
+                                                <var name="graphics-found-info" unset="true"/>
+                                                <var name="graphics-found-info-sorted" unset="true"/>
+                                                <var name="graphic-in-folder" unset="true"/>
+                                                
+                                                <propertyregex input="@{graphic-file-folder}" 
+                                                    regexp="^.*?(.+)(\\)(.+)(\.)(.+)$" 
+                                                    replace="\3" 
+                                                    property="graphic-file"/>
+                                                
+                                                
+                                                <echo message="---------- Graphic file found in the folder: ${graphic-file}"/>
+                                                <echo message="---------- "/>
+                                                
+                                                <xmltask source="${temp-article-folder}/graphics-found/graphics-found-info.xml" 
+                                                    dest="${temp-article-folder}/graphics-found/graphics-found-info.xml" 
+                                                    encoding="utf-8"
+                                                    expandEntityReferences="false">
+                                                    <insert path="/graphics/graphics-folder" >
+                                                        <![CDATA[<graphic-folder>${graphic-file}</graphic-folder>]]>
+                                                    </insert>
+                                                </xmltask>
+                                                
+                                                <!-- Hacky addition to create a warning if a graphic file has the .pdf extension so this can be passed into the QA-html.xsl -->
+                                                <if>
+                                                    <equals arg1="${graphic-file-extension}" arg2="pdf"/>
+                                                    <then>
+                                                        <echo
+                                                            file="${temp-article-folder}\graphics\graphics-extension.txt"
+                                                            append="true"
+                                                            message="${graphic-file-extension}"/>
+                                                    </then>
+                                                </if>
+                                                
+                                                <!-- Convert to JPG for preview -->
+                                                <echo message="----------"/>
+                                                <echo message="---------- Converting graphic to JPG for preview..."/>
+                                                <echo message="----------"/>
+                                                <!-- ImageMagick -->
+                                                <mkdir dir="${article-folder}\preview\graphics"/>
+                                                <exec executable="magick" failonerror="false">
+                                                    <arg value="-density"/>
+                                                    <arg value="300"/>
+                                                    <arg value="@{graphic-file-folder}"/>
+                                                    <arg value="-resize"/>
+                                                    <arg value="1000X1000"/>
+                                                    <arg value="-layers"/>
+                                                    <arg value="flatten"/>
+                                                    <arg value="${article-folder}\preview\graphics\${graphic-file}.jpg"/>
+                                                </exec>
+                                                
+                                                <echo
+                                                    message="---------- Are any PDFs expected in this process? ${pdf-in-process}"/>
+                                                <echo message="----------"/>
+                                                <if>
+                                                    <equals arg1="${pdf-in-process}" arg2="true"/>
+                                                    <then>
+                                                        <!-- Convert to JPG for PDF -->
+                                                        <mkdir dir="${temp-instance}\${article-name}\pdfgraphics"/>
+                                                        <echo message="----------"/>
+                                                        <echo message="---------- Converting graphic to JPG for PDF..."/>
+                                                        <echo message="----------"/>
+                                                        <!-- ImageMagick -->
+                                                        <exec executable="magick" failonerror="false">
+                                                          <arg value="-density"/>
+                                                          <arg value="300"/>
+                                                          <arg value="@{graphic-file-folder}"/>
+                                                          <arg value="-resize"/>
+                                                          <arg value="1000X1000"/>
+                                                          <arg value="-layers"/>
+                                                          <arg value="flatten"/>
+                                                          <arg value="${temp-instance}\${article-name}\pdfgraphics\${graphic-file}.jpg"/>
+                                                        </exec>
+                                                    </then>
+                                                </if>
+                                            </sequential>
+                                        </for>
+                                        
+                                    </then>
+                                </if>
+                            </then>
+                        </if>
+                    </then>
+                </if>
+            </then>
+        </if>
+        <echo
+            message="---------- Are there any supplementary files expected in this process? ${supp-files-in-process}"/>
+        <if>
+            <equals arg1="${supp-files-in-process}" arg2="true"/>
+            <then>
+                <echo message="---------- Checking the XML for supplemetary files..."/>
+                <!-- ///////////////////////////////////////////// -->
+                <!-- Check for availability of supplementary files -->
+                <!-- ///////////////////////////////////////////// -->
+                <xpath file="${article-folder}\jats-xml\${jats-xml-name}.xml"
+                    expression="//supplementary-material/media/@xlink:href"
+                    outputproperty="supps-xml">
+                    <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+                </xpath>
+                <sortlist property="supps-xml-sorted" value="${supps-xml}" delimiter=","/>
+                <condition property="supps-present" else="false">
+                    <length string="${supps-xml-sorted}" when="greater" length="0"/>
+                </condition>
+                <echo message="---------- Supplementary files found in the XML? ${supps-present}"/>
+                <!-- Are there any supplementary files referenced in the XML and, if so, are there corresponding files in the article data-supps folder? -->
+                <if>
+                    <equals arg1="${supps-present}" arg2="true"/>
+                    <then>
+                        <echo
+                            message="---------- These are the sorted supplementary files found in the XML: ${supps-xml-sorted}"/>
+                        <echo file="${temp-article-folder}\data-supp\supps-in-xml.txt"
+                            message="${supps-xml-sorted}" append="true"/>
+                        <!--Supplementary file collecting-->
+                        <!--Checks article XML for any supplementaryfile references then looks for corresponding supplementary files in the data-supps folder if so-->
+                        <echo message="----------"/>
+                        <echo message="---------- Collecting supplementary files..."/>
+                        <echo message="----------"/>
+                        <condition property="supps-present-folder" else="false">
+                            <available file="${article-folder}/data-supp" type="dir"/>
+                        </condition>
+                        <echo
+                            message="---------- Is the supplementary file folder available in the content store? ${supps-present-folder}"/>
+                        <if>
+                            <equals arg1="${supps-present-folder}" arg2="true"/>
+                            <then>
+                                <for list="${supps-xml-sorted}" param="supp-file-xml">
+                                    <sequential>
+                                        <var name="supp-in-folder" unset="true"/>
+                                        <var name="supp-file-folder" unset="true"/>
+                                        <var name="supp-file-with-extension" unset="true"/>
+                                        <var name="supp-file-without-extension" unset="true"/>
+                                        <echo
+                                            message="---------- This supp file was found in the XML: @{supp-file-xml}"/>
+                                        
+                                        <!-- DOES THIS NEED TO HAVE THE FILE EXTENSION? NEEDS A THINK. -->
+                                        <fileset dir="${article-folder}\data-supp" id="supp-found">
+                                            <include name="@{supp-file-xml}.*"/>
+                                        </fileset>
+                                        <pathconvert refid="supp-found" property="supp-in-folder"
+                                            setonempty="false"/>
+                                        <echo
+                                            message="---------- This is the supplementary filepath with file: ${supp-in-folder}"/>
+                                        <propertyregex property="supp-file-with-extension"
+                                            input="${supp-in-folder}"
+                                            regexp=".*?(.+)(\\)(.+)(\.)(.+)(\.)(.+)"
+                                            replace="\3\4\5\6\7" global="true"/>
+                                        <propertyregex property="supp-file-without-extension"
+                                            input="${supp-in-folder}"
+                                            regexp=".*?(.+)(\\)(.+)(\.)(.+)(\.)(.+)"
+                                            replace="\3\4\5" global="true"/>
+                                        <echo
+                                            message="---------- This is the supp file in the folder with extension: ${supp-file-without-extension}"/>
+                                        <echo
+                                            message="---------- This is the supp file in the folder without extension: ${supp-file-without-extension}"/>
+                                        <echo
+                                            file="${temp-article-folder}\data-supp\supps-in-folder.txt"
+                                            append="true" message="${supp-file-without-extension},"
+                                        />
+                                    </sequential>
+                                </for>
+                            </then>
+                        </if>
+                    </then>
+                </if>
+            </then>
+        </if>
+    </target>
+</project>

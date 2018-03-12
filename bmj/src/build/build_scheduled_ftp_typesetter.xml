@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="scheduled-ftp-to-typesetter">
+    
+    <description>
+        
+    </description>
+    
+    <target name="scheduled-ftp-to-typesetter" depends="copy-to-typesetter-ftp"/>
+    
+    <!--Directories for testing process-->
+    
+    <tstamp>
+        <format property="PUB-YEAR" pattern="yyyy"/>
+    </tstamp>
+    
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    
+    <property name="log-info" value="${log}/scheduled-ftp-typesetter-${start.DSTAMP}-info.txt"/>
+    
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    
+    <target name="copy-to-typesetter-ftp">
+        
+        <fileset dir="${upload-to-typesetter}" id="article-zips">
+            <include name="bmj*"/>
+        </fileset>
+        
+        <pathconvert refid="article-zips" property="article-zip-list"/>
+        <echo message="---------- This is the list of article zips: ${article-zip-list}"/>
+        
+        <!-- Check for the presence of article folder and set 'article-folder-present' condition if true -->
+        <condition property="article-zip-present" else="false">
+            <length string="${article-zip-list}" when="gt" length="0"/>
+        </condition>
+        <echo message="---------- Is an article zip present? ${article-zip-present}"/>
+        
+        
+        <if>
+            <isset property="article-zip-present"/>
+            
+            <then>
+                
+                <!-- Transfer article packages to Highwire FTP -->
+                
+                <for list="${article-zip-list}" param="item" delimiter=";">
+                    <sequential>
+                        
+                        <var name="item-bmj-elocator" unset="true"/>
+                        
+                        <echo message="---------- Sending files to FTP"/>
+                        <echo message="This is a single item: @{item}"/>
+                        
+                        <propertyregex 
+                            property="item-folder" input="@{item}" 
+                            regexp=".*?(.+)(\\)(.+)" 
+                            replace="\1" 
+                            global="true"/>
+                        
+                        <echo message="This is the folder for the item: ${item-folder}"/>
+                        
+                        <propertyregex 
+                            property="item-zip" input="@{item}" 
+                            regexp=".*?(.+)(\\)(.+)" 
+                            replace="\3" 
+                            global="true"/>
+                        
+                        <echo message="This is the folder for the item: ${item-zip}"/>
+                        
+                        <ftp 
+                            server="${ftpsite}"
+                            userid="${ftpuser}"
+                            password="${ftppw}"
+                            remotedir="${ftpdir}" verbose="yes">
+                            <fileset dir="${item-folder}">
+                                <include name="${item-zip}"/>
+                            </fileset>
+                        </ftp>
+                        
+                    </sequential>
+                </for>
+                
+                <for list="${article-zip-list}" param="item" delimiter=";">
+                    <sequential>
+                        <delete verbose="true" includeemptydirs="true">
+                            <file file="@{item}"/>
+                        </delete>
+                    </sequential>
+                </for>
+                
+                
+            </then>
+            
+        </if>
+        
+    </target>
+    
+    
+    
+</project>

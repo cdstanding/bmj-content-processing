@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project 
+    basedir="."
+    name="build_housekeeping"
+    default="sweep">
+    
+    <description>
+        This is a maintenance task which will check for old log files and temporary folders created by users as they process articles.
+        
+        This is launched by a batch file of the same name 
+        
+        \\bmjprod1\Users\la_bmjprod\dev\bmj\build_housekeeping.bat
+        
+        and run on a shedule.
+        
+        Properties for the location of files and units for the amount of time to set for the deletion of files/folders are contained in 
+        
+        \\bmjprod1\Users\la_bmjprod\dev\bmjbuild_housekeeping.properties
+    </description>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    
+    <target name="sweep">
+        
+        <!--Start a time-stamped log. This will append a log with the same date and will 
+        create a new log when the date changes to a new day.-->
+        <tstamp>
+            <format property="PUB-YEAR" pattern="yyyy"/>
+        </tstamp>
+        <tstamp prefix="start"/>
+        <mkdir dir="${log}"/>
+        <property name="log-info" value="${log}\sweep-${start.DSTAMP}-info.txt"/>
+        <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+        <echo message="********************"/>
+        <echo message="START LOG"/>
+        <echo message="********************"/>
+        <echo message="START TIME ${start.TSTAMP}"/>
+        <echo message="********************"/>
+        
+        <!-- Temp folders -->
+        
+        <!--NOTE:
+                    Date format does not match the date format that is displayed in the folder on Windows.
+                    The date used by the system is a default US date format and this is what the code will work from.
+                    Putting a UK date format as a pattern will not work.-->
+        <tstamp>
+               <format property="temp-dir-keeptime" pattern="MM/dd/yyyy hh:mm aa" offset="-${temp-directory-keeptime}" unit="week"/>
+        </tstamp>
+        <echo message="---------- Any temp folders will be deleted before this date and time: ${temp-dir-keeptime}"/>
+        <echo message=""/>
+        
+        <dirset dir="${temp-folder-dir}" includes="*" id="old-folders-list">
+            <date datetime="${temp-dir-keeptime}" when="before" checkdirs="true"/>
+        </dirset>
+        
+        <pathconvert refid="old-folders-list" property="old-folders"/>
+        
+        <for list="${old-folders}" param="old-folder" delimiter=";">
+            <sequential>
+                <echo message="---------- Deleting this temp folder...@{old-folder}"/>
+                <echo message="----------"/>
+                <delete dir="@{old-folder}"/>
+            </sequential>
+        </for>
+        <!-- ////////// -->
+        
+        
+        <!-- Log files -->
+        <tstamp>
+               <format property="log-keeptime" pattern="MM/dd/yyyy hh:mm aa" offset="-${log-file-keeptime}" unit="week"/>
+        </tstamp>
+        <echo message="---------- Any log files will be deleted before this date and time: ${log-keeptime}"/>
+        <echo message=""/>
+        
+        <fileset dir="${log}" includes="*" id="old-logs-list">
+            <date datetime="${log-keeptime}" when="before" checkdirs="true"/>
+        </fileset>
+        
+        <pathconvert refid="old-logs-list" property="old-logs"/>
+        
+        <for list="${old-logs}" param="old-log" delimiter=";">
+            <sequential>
+                <echo message="---------- Deleting this log file...@{old-log}"/>
+                <echo message="----------"/>
+                <delete file="@{old-log}"/>
+            </sequential>
+        </for>
+        <!-- ////////// -->
+        
+    </target>
+    
+    
+</project>

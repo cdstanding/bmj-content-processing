@@ -1,0 +1,693 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<strings
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../../../../../schemas/bmjk-publication-labels.xsd">
+
+	<product>BMJ Best Health</product>
+	<article>patient-topic</article>
+	
+	<abstract name="asdf">
+		<description>asdf asdf asdf</description>
+		<variant lang="as-df" fallback="true">
+			<friendly>asdf</friendly>
+			<detail type="serna">asdf asdf asdf</detail>
+			<detail type="hint-author">asdf asdf asdf</detail>
+			<detail type="hint-editor">asdf asdf asdf</detail>
+			<detail type="description">asdf asdf asdf</detail>
+		</variant>
+		<variant lang="en-en" fallback="true">
+			<friendly>asdf</friendly>
+		</variant>
+		<variant lang="en-gb" fallback="true">
+			<friendly>[ADD FRIENDLY NAME]</friendly>
+		</variant>
+		<variant lang="de-de">
+			<friendly>asdf</friendly>
+		</variant>
+		<variant lang="nl-nl">
+			<friendly>[ADD FRIENDLY NAME]</friendly>
+		</variant>
+		<variant lang="it-it">
+			<friendly>[ADD FRIENDLY NAME]</friendly>
+		</variant>
+		<variant lang="es-es">
+			<friendly>[ADD FRIENDLY NAME]</friendly>
+		</variant>
+		<variant lang="fr-fr">
+			<friendly>[ADD FRIENDLY NAME]</friendly>
+		</variant>
+	</abstract>
+
+	<abstract name="journal-title" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Best Health</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="journal-title-abbr">
+		<variant lang="en-gb">
+			<friendly>BH</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="article" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Article</friendly>
+		</variant>
+	</abstract>
+	<abstract name="front" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Front</friendly>
+		</variant>
+	</abstract>
+	<abstract name="body" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Body</friendly>
+		</variant>
+	</abstract>
+	
+	
+	<abstract name="notes" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Notes</friendly>
+		</variant>
+	</abstract>
+	
+	
+	<!-- article/front/article-meta -->
+	<abstract name="article-meta" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Meta-data</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="title-group" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Title group</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="article-title" format="heading-self">
+		<variant lang="en-gb">
+			<friendly>Title</friendly>
+		</variant>
+	</abstract>
+	<abstract name="alt-title" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Alt title</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="related-article" format="link">
+		<variant lang="en-gb">
+			<friendly>Related article</friendly>
+		</variant>
+	</abstract>
+	<abstract name="related-article-option" format="link">
+		<variant lang="en-gb">
+			<friendly>Related Clinical Evidence intervention</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="custom-meta-group" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Meta-data group</friendly>
+		</variant>
+	</abstract>
+	<abstract name="custom-meta" format="section-self">
+		<variant lang="en-gb">
+			<friendly>Custom meta-data</friendly>
+		</variant>
+	</abstract>
+	<abstract name="meta-name" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Name</friendly>
+		</variant>
+	</abstract>
+	<abstract name="meta-value" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Value</friendly>
+		</variant>
+	</abstract>
+	
+	
+	<!-- common blocks -->
+	<abstract name="sec" format="section-self">
+		<variant lang="en-gb">
+			<friendly>Section</friendly>
+		</variant>
+	</abstract>
+	<abstract name="section" format="section-self">
+		<variant lang="en-gb">
+			<friendly>Section</friendly>
+		</variant>
+	</abstract>
+	<abstract name="title" format="heading-self">
+		<variant lang="en-gb">
+			<friendly>Title</friendly>
+		</variant>
+	</abstract>
+	<abstract name="p" format="para">
+		<variant lang="en-gb">
+			<friendly>Para</friendly>
+		</variant>
+	</abstract>
+	<abstract name="list" format="section-self">
+		<variant lang="en-gb">
+			<friendly>List</friendly>
+		</variant>
+	</abstract>
+	<abstract name="list-item" format="list">
+		<variant lang="en-gb">
+			<friendly>Item</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="overview" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Overview</friendly>
+		</variant>
+	</abstract>
+	<abstract name="key-points" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Key-points</friendly>
+		</variant>
+	</abstract>
+	<abstract name="explanation" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Explanation</friendly>
+		</variant>
+	</abstract>
+	<abstract name="risk-factors" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Risk factors</friendly>
+		</variant>
+	</abstract>
+	<abstract name="staging" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Staging</friendly>
+		</variant>
+	</abstract>
+	<abstract name="classification" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Classification</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="treatment-approach" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatment approach</friendly>
+		</variant>
+	</abstract>
+	<abstract name="guidelines" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Guidelines</friendly>
+		</variant>
+	</abstract>
+	<abstract name="drug-alerts" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Drug alerts</friendly>
+		</variant>
+	</abstract>
+	<abstract name="which-treatments-work-best" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Which treatments work best?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="treatment-groups" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatment groups</friendly>
+		</variant>
+	</abstract>
+	<abstract name="treatment-group" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatment group</friendly>
+		</variant>
+	</abstract>
+	<abstract name="group" format="section-self">
+		<variant lang="en-gb">
+			<friendly>Group</friendly>
+		</variant>
+	</abstract>
+	<abstract name="treatments" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatments</friendly>
+		</variant>
+	</abstract>
+	<abstract name="treatment" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatment</friendly>
+		</variant>
+	</abstract>
+	<abstract name="sub-article" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>sub-article</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="treatment-rating" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatment rating</friendly>
+		</variant>
+	</abstract>
+	<abstract name="treatment-examples" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatment examples</friendly>
+		</variant>
+	</abstract>
+	<abstract name="treatment-example" format="list">
+		<variant lang="en-gb">
+			<friendly>Treatment example</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="effect" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Effect</friendly>
+		</variant>
+	</abstract>
+	<abstract name="research" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Research</friendly>
+		</variant>
+	</abstract>
+	<abstract name="harms" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Harms</friendly>
+		</variant>
+	</abstract>
+	<abstract name="harm" format="list">
+		<variant lang="en-gb">
+			<friendly>Harm</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="does-it-work" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Does it work?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="what-is-it" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>What is it?</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="how-does-it-work" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>How does it work?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="benefits" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Benefits</friendly>
+		</variant>
+	</abstract>
+	<abstract name="how-good-is-the-research" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>How good is the research?</friendly>
+		</variant>
+	</abstract>
+	
+	
+	<abstract name="what-is-it-for" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>What is it for?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="who-is-it-suitable-for" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Who is it suitable for?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="what-happens" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>What happens?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="treatment-choices" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatment choices</friendly>
+		</variant>
+	</abstract>
+	<abstract name="whats-the-outcome" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Whats the outcome?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="what-if-it-doesnt-work" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>What if it doesnt work?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="what-are-the-risks" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>What are the risks?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="what-if-i-dont-have-it" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>What if I dont have it?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="what-are-the-alternatives" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>What are the alternatives?</friendly>
+		</variant>
+	</abstract>
+	<abstract name="what-can-i-expect-afterwards" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>What can I expect afterwards?</friendly>
+		</variant>
+	</abstract>
+
+
+	<abstract name="further-information" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Further information</friendly>
+		</variant>
+	</abstract>
+	
+	
+	<!-- links/inline -->
+	<abstract name="xref" format="link">
+		<variant lang="en-gb">
+			<friendly>Link</friendly>
+		</variant>
+	</abstract>
+	<abstract name="xref-bibr" format="link">
+		<variant lang="en-gb">
+			<friendly>Reference link</friendly>
+		</variant>
+	</abstract>
+	<abstract name="xref-gloss" format="link">
+		<variant lang="en-gb">
+			<friendly>Gloss link</friendly>
+		</variant>
+	</abstract>
+	<abstract name="xref-fig" format="link">
+		<variant lang="en-gb">
+			<friendly>Figure link</friendly>
+		</variant>
+	</abstract>
+	<abstract name="xref-table" format="link">
+		<variant lang="en-gb">
+			<friendly>Table link</friendly>
+		</variant>
+	</abstract>
+	<abstract name="xref-patient-topic" format="link">
+		<variant lang="en-gb">
+			<friendly>Patient topict</friendly>
+		</variant>
+	</abstract>
+	<abstract name="patient-topic" format="link">
+		<variant lang="en-gb">
+			<friendly>Patient topic</friendly>
+		</variant>
+	</abstract>
+	<abstract name="xref-patient-treatment" format="link">
+		<variant lang="en-gb">
+			<friendly>Patient treatment</friendly>
+		</variant>
+	</abstract>
+	<abstract name="patient-treatment" format="link">
+		<variant lang="en-gb">
+			<friendly>Patient treatment</friendly>
+		</variant>
+	</abstract>
+	<abstract name="xref-elective-surgery" format="link">
+		<variant lang="en-gb">
+			<friendly>Elective surgery</friendly>
+		</variant>
+	</abstract>
+	<abstract name="elective-surgery" format="link">
+		<variant lang="en-gb">
+			<friendly>Elective surgery</friendly>
+		</variant>
+	</abstract>
+	<abstract name="xref-static-content" format="link">
+		<variant lang="en-gb">
+			<friendly>Static content</friendly>
+		</variant>
+	</abstract>
+	<abstract name="static-content" format="link">
+		<variant lang="en-gb">
+			<friendly>Static content</friendly>
+		</variant>
+	</abstract>
+		
+	<abstract name="ext-link" format="link">
+		<variant lang="en-gb">
+			<friendly>URL</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="strong" format="strong">
+		<variant lang="en-gb">
+			<friendly>Strong</friendly>
+		</variant>
+	</abstract>
+	<abstract name="bold" format="strong">
+		<variant lang="en-gb">
+			<friendly>Strong</friendly>
+		</variant>
+	</abstract>
+	<abstract name="italic" format="em">
+		<variant lang="en-gb">
+			<friendly>Emphasis</friendly>
+		</variant>
+	</abstract>
+	<abstract name="drug" format="link">
+		<variant lang="en-gb">
+			<friendly>Drug</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="figure" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Figure</friendly>
+		</variant>
+	</abstract>
+	<abstract name="caption" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Caption</friendly>
+		</variant>
+	</abstract>
+	<!--<abstract name="source" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Published by</friendly>
+		</variant>
+	</abstract>-->
+	<abstract name="image-link" format="image">
+		<variant lang="en-gb">
+			<friendly>Image link</friendly>
+		</variant>
+	</abstract>
+	
+	
+	<abstract name="alt-link-wrapper" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Alt link wrapper</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="references" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>References</friendly>
+		</variant>
+	</abstract>
+	<abstract name="reference" format="list">
+		<variant lang="en-gb">
+			<friendly>Reference</friendly>
+		</variant>
+	</abstract>
+	<abstract name="patient-citation" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Citation</friendly>
+		</variant>
+	</abstract>
+	<abstract name="primary-authors" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Authors</friendly>
+		</variant>
+	</abstract>
+	<abstract name="primary-title" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Title</friendly>
+		</variant>
+	</abstract>
+	<abstract name="source" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Source</friendly>
+		</variant>
+	</abstract>
+	
+	<!-- article/body/* -->
+	<abstract name="introduction" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Introduction</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="content" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Content</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="description" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Description</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="symptoms" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Symptoms</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="incidence" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Incidence</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="prognosis" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Prognosis</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="diagnosis" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Diagnosis</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="questions-to-ask" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Questions to ask</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="survival-rates" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Survival rates</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="self-management" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Self management</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="tests" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Tests</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="treatment-points" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Treatment points</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="table-wrap" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Table</friendly>
+		</variant>
+	</abstract>
+	<abstract name="table" format="table">
+		<variant lang="en-gb">
+			<friendly>Table</friendly>
+		</variant>
+	</abstract>
+	<abstract name="thead" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Table header</friendly>
+		</variant>
+	</abstract>
+	<abstract name="tbody" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Table body</friendly>
+		</variant>
+	</abstract>
+	<abstract name="tfoot" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Table footer</friendly>
+		</variant>
+	</abstract>
+	<abstract name="tr" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Row</friendly>
+		</variant>
+	</abstract>
+	<abstract name="th" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Cell</friendly>
+		</variant>
+	</abstract>
+	<abstract name="td" format="ignored">
+		<variant lang="en-gb">
+			<friendly>Cell</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="glosses" format="heading-implied">
+		<variant lang="en-gb">
+			<friendly>Glosses</friendly>
+		</variant>
+	</abstract>
+	<abstract name="gloss" format="list">
+		<variant lang="en-gb">
+			<friendly>Gloss</friendly>
+		</variant>
+	</abstract>
+	
+	<abstract name="publication-date" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Publication date</friendly>
+		</variant>
+	</abstract>
+	<abstract name="term" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Term</friendly>
+		</variant>
+	</abstract>
+	<abstract name="definition" format="para-prompt">
+		<variant lang="en-gb">
+			<friendly>Definition</friendly>
+		</variant>
+	</abstract>
+	
+	
+	<abstract name="pi-comment-q-to-pr" format="pi-comment">
+		<variant lang="en-gb">
+			<friendly>Q to PR</friendly>
+		</variant>
+	</abstract>
+	<abstract name="pi-comment-q-to-a" format="pi-comment">
+		<variant lang="en-gb">
+			<friendly>Q to A</friendly>
+		</variant>
+	</abstract>
+	<abstract name="pi-comment-q-to-ed" format="pi-comment">
+		<variant lang="en-gb">
+			<friendly>Q to Ed</friendly>
+		</variant>
+	</abstract>
+	<abstract name="pi-comment-q-to-teched" format="pi-comment">
+		<variant lang="en-gb">
+			<friendly>Q to Tech-ed</friendly>
+		</variant>
+	</abstract>
+	<abstract name="pi-comment-q-to-prod" format="pi-comment">
+		<variant lang="en-gb">
+			<friendly>Q to Prod</friendly>
+		</variant>
+	</abstract>
+
+</strings>

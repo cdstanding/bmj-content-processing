@@ -1,0 +1,516 @@
+* {
+    font-family: arial, "lucida console", sans-serif;
+}
+h1,h2,h3,h4,h5,h6,h7,h8,h9 {
+    color: black;
+    background-color: white;
+    font-weight: bold;
+}
+h1 {
+    padding-bottom: 0px;
+}
+h2 {
+    padding-top: 30px;
+}
+h3 {
+    padding-top: 20px;
+}
+h4 {
+    padding-top: 10px;
+}
+h5 {
+    padding-top: 5px;
+    font-size:medium;
+}
+h6 {
+    padding-top: 5px;
+    font-size:medium;
+}
+
+div.monograph-summary {
+    position:relative;
+}
+div.monograph-summary div.highlights, div.overview, div.ddx-etiology, div.urgent-considerations {
+    position:relative;
+    width:66%;
+}
+div.monograph-summary div.figure {
+    position:absolute;
+    top:100px;
+    right:0;
+    width:33%;
+}
+div.differentials-summary {
+    position:absolute;
+    top:100px;
+    right:0;
+    width:30%;
+    border-color:gray;
+    border-style:solid;
+    border-width:1px;
+    padding:5px;
+    margin:5px;
+}
+
+div.diagnostic-factors-summary, div.tests-summary, div.tx-options-summary {
+    float:left;
+    width:30%;
+    border-color:gray;
+    border-style:solid;
+    border-width:1px;
+    padding:5px;
+    margin:5px;
+}
+div.diagnostic-factors-summary h3, div.diagnostic-factors-summary h4, div.tests-summary h3, div.tests-summary h4, div.tx-options-summary h3, div.tx-options-summary h4, div.differentials-summary h3, div.differentials-summary h4 {
+    padding: 5px;
+    margin: 0px;
+}
+div.basics, div.overview {
+    clear:both;
+}
+
+div.diagnostic-factors div.factor{
+    position:relative;
+}
+div.factor h5 {
+    padding-top:0px;
+    margin-top:0px;
+    float:left;
+    width:66%;
+}
+div.factor div.prompt p span.frequency {
+    padding-top:0px;
+    float:left;
+    width:33%;
+}
+div.factor div.prompt p span.prompt {
+    display:none;
+}
+div.factor div.prompt p span.hint-prompt, div.factor div.prompt p span.hint  {
+    display:none;
+}
+
+div.factor h5:before{
+    content:"Factor";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.true-factor-group div.factor:first-child {
+    background-color:gray;
+    color:purple;
+}
+
+div.factor div.prompt p span.frequency:before {
+    content:"Frequency";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.factor div.detail {
+    clear:both;
+    position:relative;
+    width:66%;
+}
+
+div.initial-test-group div.test, div.subsequent-test-group div.test, div.emerging-test-group div.test {
+    position:relative;
+    padding:0px;
+    margin:0px;
+}
+div.initial-test-group div.test h5, div.subsequent-test-group div.test h5, div.emerging-test-group div.test h5 {
+    position:relative;
+    padding-top:0px;
+    top:0;
+    left:0;
+    width:66%;
+    height:auto;
+}
+div.initial-test-group div.test div.result, div.subsequent-test-group div.test div.result , div.emerging-test-group div.test div.result {
+    position:absolute;
+    padding-top:0px;
+    padding-left:0px;
+    margin-left:0px;
+    top:0;
+    right:0;
+    width:33%;
+}
+div.initial-test-group div.test h5:before, div.subsequent-test-group div.test h5:before, div.emerging-test-group div.test h5:before {
+    content:"Test";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.initial-test-group div.test div.result:before, div.subsequent-test-group div.test div.result:before, div.emerging-test-group div.test div.result:before {
+    content:"Result";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.initial-test-group div.test div.detail, div.subsequent-test-group div.test div.detail , div.emerging-test-group div.test div.detail {
+    position:relative;
+    top:auto;
+    left:0;
+    width:66%;
+}
+div.initial-test-group div.test div.prompt, div.initial-test-group div.test div.result span.prompt, div.subsequent-test-group div.test div.prompt, div.subsequent-test-group div.test div.result span.prompt, div.emerging-test-group div.test div.prompt, div.emerging-test-group div.test div.result span.prompt {
+    display:none;
+}
+
+div.diagnosis div.differential,
+div.false-differential-group div.differential,
+div.true-differential-group div.differential,
+div.differentials-tests div.true-test-group, div.differentials-tests div.false-test-group {
+    position:relative;
+    /*border-bottom-style:dashed;
+    border-bottom-width:1px;
+    border-bottom-color:gray;*/
+}
+div.diagnosis div.differential h4, div.diagnosis div.differential div.sign-symptoms, div.diagnosis div.differential div.tests, 
+div.false-differential-group div.differential h4, div.false-differential-group div.differential div.history, div.false-differential-group div.differential div.exam,
+div.true-differential-group div.differential h4, div.true-differential-group div.differential div.history, div.true-differential-group div.differential div.exam 
+div.differentials-tests h4, div.differentials-tests div.true-test-group, div.differentials-tests div.false-test-group {
+    float:left;
+    width:33%;
+    padding-top:0px;
+    margin:0px;
+}
+div.diagnosis div.differential div.sign-symptoms h5, div.diagnosis div.differential div.tests h5, 
+div.true-differential-group div.differential div.history h5, div.true-differential-group div.differential div.exam h5,
+div.false-differential-group div.differential div.history h5, div.false-differential-group div.differential div.exam h5,  
+div.differentials-tests div.true-test-group h5, div.differentials-tests div.false-test-group h5 {
+    display:none;
+}
+div.diagnosis div.differential h4:before{
+    content:"Disease/Condition";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.diagnosis div.differential div.sign-symptoms:before{
+    content:"Differentiating Signs/Symptoms";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.diagnosis div.differential div.tests:before {
+    content:"Differentiating Tests";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.true-differential-group div.differential h4:before, div.false-differential-group div.differential h4:before {
+    content:"Differential";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.true-differential-group div.differential div.history:before, div.false-differential-group div.differential div.history:before {
+    content:"History";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.true-differential-group div.differential div.exam:before, div.false-differential-group div.differential div.exam:before {
+    content:"Exam";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.differentials-tests div.true-test-group:before {
+    content:"1st Tests";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.differentials-tests div.false-test-group:before {
+    content:"Other Tests";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+
+div.diagnosis div.differential, div.diagnostic-criteria, div.guidelines, div.true-differential-group div.differential, div.false-differential-group div.differential, div.true-differential-group , div.false-differential-group, div.differentials-tests, div.key-article-references, div.references {
+    clear:both;
+}
+
+div.complication {
+    position:relative;
+    /*border-bottom-style:dashed;
+    border-bottom-width:1px;
+    border-bottom-color:gray;*/
+}
+/* div.complication div.prompt {display:none;} */
+div.complication h4 {
+    float:left;
+    width:80%;
+    margin-top:0px;
+    padding-top:0px;
+}
+div.complication div.prompt span.likelihood, div.complication div.prompt span.timeframe {
+    float:left;
+    width:10%;
+    padding-top:0px;
+}
+div.complication h4:before {
+   content:"Complication";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.complication div.prompt span.likelihood:before {
+   content:"Likelihood";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.complication div.prompt span.timeframe:before {
+    content:"Timeframe";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+div.complication div.detail {
+    clear:both;
+    width:66%;
+    padding-top:0px;    
+}
+div.complication, div.recommendations {
+    clear:both;
+}
+div.complication div.prompt p span.prompt {
+    display:none;
+}
+
+div.strong-risk-factor-group h4, div.true-factor-group h4, div.initial-test-group h4, div.presumptive-tx-option-group h4 {
+    position:relative;
+    background-color: maroon;
+    color: white;
+    padding-top:0px;
+}
+div.weak-risk-factor-group h4, div.false-factor-group h4, div.subsequent-test-group h4, div.emerging-test-group h4, div.acute-tx-option-group h4, div.ongoing-tx-option-group h4, div.true-differential-group h3, div.false-differential-group h3 {
+    position:relative;
+    background-color: navy;
+    color: white;
+    padding-top:0px;
+}
+div.weak-risk-factor-group h5:before, div.strong-risk-factor-group h5:before {
+    content:"Factor";
+    font-size:medium;
+    font-weight:bold;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+    display:block;
+    padding:0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    margin-bottom:5px;
+    color:black;
+    background-color:white;
+}
+span.prompt, span.hint-prompt {
+    font-weight: bold;
+    /*display:none;*/
+}
+span.hint-prompt, span.hint {
+    background-color:white;
+    color:gray;
+    /*display:none;*/
+}
+span.modifier {
+    font-weight: bold;
+    font-style: italic;
+}
+span.organism {
+    font-style: italic;
+}
+span.drug {
+    color: black;
+    background-color: yellow;
+}
+table {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: gray;
+}
+thead th {
+    vertical-align: text-bottom;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: black;
+}
+tr.pt-group-seperater td {
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-top-color: gray;
+    padding-top:20px;
+}
+tr.tx-option-seperater td {
+    margin-top:5px;
+}
+tbody td {
+    vertical-align: text-top;
+}
+div.figure {
+    text-align: center;
+    font-size: smaller;
+    padding-top: 10px;
+}
+img {
+    border: 0;
+}
+
+div.credits {
+    position:relative;
+}
+div.credits div.author-photos {
+    position:absolute;
+    top:0;
+    right:0;
+}
+div.credits div.person-group h3 {
+    color:black;
+    background-color:white;
+}
+
+span.exclamation {
+    color:maroon;
+    background-color:white;
+}
+
