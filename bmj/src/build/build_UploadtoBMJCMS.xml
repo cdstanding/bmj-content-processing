@@ -197,6 +197,8 @@
         <default/>
     </switch>
     
+    <echo message="---------- This is the embargo date before getting into autobatch: ${valid-date-string}"/>
+    
     
     <!-- Checking that NLM XML is available in package. Continues to process batch if it is, fails if it isn't. -->
     <target name="check-for-xml">
@@ -242,7 +244,6 @@
                 <var name="pdfs" unset="true"/>
                 <var name="peid" unset="true"/>
                 <var name="ppr-volume" unset="true"/>
-                <var name="valid-date-string" unset="true"/>
                 <!-- ============================== -->
                 
                 <propertyregex input="@{dir}" regexp="^(.+)(\\)(.+)" replace="\1\2\3" property="article-path"/>
@@ -663,15 +664,14 @@
             </then>
         </if>
         
-        
         <!-- Creating autobatch file for Green to Go or Embargo -->
         <switch value="${publishtohwx}">
             <case value="true">
+                <echo message="---------- This is the embargo date before getting into autobatch: ${valid-date-string}"/>
                 <xslt in="${article-path}/jats-xml/${article-name}.xml"
                     out="${temp-uploadtobmjcms}/_autobatch_/bmj.${elocator}.xml"
                     style="${xslt}/autobatch.xsl" processor="trax" force="true"
                     extension=".xml">
-                    
                     <param name="abridged-set" expression="${abridged}"/>
                     <param name="art-journal" expression="${article-journal}"/>
                     <param name="art-section" expression="${article-section}"/>
@@ -737,6 +737,8 @@
             <available file="${temp-uploadtobmjcms}/graphics" type="dir"/>
         </condition>
         
+        <echo message="---------- Is the graphics directory present? ${graphics-dir-present}"/>
+        
         <if>
             <isset property="graphics-dir-present"/>
             <then>
@@ -751,6 +753,8 @@
         <condition property="data-supps-dir-present">
             <available file="${temp-uploadtobmjcms}/data-supps/bmj.${elocator}" type="dir"/>
         </condition>
+        
+        <echo message="---------- Is the data-supp directory present? ${data-supps-dir-present}"/>
         
         <if>
             <isset property="data-supps-dir-present"/>

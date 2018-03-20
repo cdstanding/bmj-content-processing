@@ -180,4 +180,11 @@
         </sch:rule>
     </sch:pattern>
     
+    <sch:pattern>
+        <sch:title>Check for any file extension added to supplementary file reference.</sch:title>
+        <sch:rule context="//supplementary-material/media">
+            <sch:report test="@xlink:href[matches(.,'(.+)(\.avi|\.doc|\.docx|\.eps|\.gif|\.jpg|\.jpeg|\.mpg|\.pdf|\.tif|\.tiff|\.xls)')]" role="error">The reference to the supplementary material contains a file extension, this may cause a problem with file checking in the folder. Please remove the file extension in the reference in Word and process again.</sch:report>
+        </sch:rule>
+    </sch:pattern>
+    
 </sch:schema>

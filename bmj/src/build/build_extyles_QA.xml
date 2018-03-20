@@ -19,9 +19,6 @@
     
     <!--Start a time-stamped log. This will append a log with the same date and will 
         create a new log when the date changes to a new day -->
-    <tstamp>
-        <format property="PUB-YEAR" pattern="yyyy"/>
-    </tstamp>
     <tstamp prefix="start"/>
     <mkdir dir="${log}"/>
     <property name="log-info" value="${log}/xml-processlog-${start.DSTAMP}-info.txt"/>
@@ -78,6 +75,7 @@
                         <var name="extyles-warning" unset="true"/>
                         <var name="graphic-file-folder" unset="true"/>
                         <var name="graphics-folder-available" unset="true"/>
+                        <var name="graphics-found-file" unset="true"/>
                         <var name="graphics-found-filepath" unset="true"/>
                         <var name="graphics-found-folder" unset="true"/>
                         <var name="graphics-found-info-folder" unset="true"/>
@@ -87,9 +85,12 @@
                         <var name="graphics-present-xml" unset="true"/>
                         <var name="graphics-xml" unset="true"/>
                         <var name="graphics-xml-sorted" unset="true"/>
+                        <var name="instance" unset="true"/>
                         <var name="journal-id" unset="true"/>
                         <var name="journal-id-meta" unset="true"/>
                         <var name="journal-nlm" unset="true"/>
+                        <var name="resolved-base-dir" unset="true"/>
+                        <var name="resolved-temp-dir" unset="true"/>
                         <var name="source-filename" unset="true"/>
                         <var name="source-filename-no-ext" unset="true"/>
                         <var name="supp-file-xml" unset="true"/>
@@ -101,19 +102,18 @@
                         <var name="supps-text-file" unset="true"/>
                         <var name="supps-xml" unset="true"/>
                         <var name="supps-xml-sorted" unset="true"/>
-                        <var name="source-filename-no-ext" unset="true"/>
-                        <var name="source-filename-no-ext" unset="true"/>
                         <var name="source-file-xml" unset="true"/>
+                        <var name="valid" unset="true"/>
+                        <var name="well-formed" unset="true"/>
                         
                         <echo message=" "/>
                         <echo message="**************************"/>
                         <echo message="* PROCESSING NEW ARTICLE *"/>
                         <echo message="**************************"/>
                         
-                        <tstamp>
-                            <format property="instance-year" pattern="yyyy"/>
+                        <tstamp prefix="instance">
+                            <format property="detailed-stamp" pattern="yyyy-MM-dd-HH-mm-ss"/>
                         </tstamp>
-                        <tstamp prefix="instance"/>
                         
                         <echo message="---------- "/>
                         <echo message="---------- This is an individual article: @{article}"/>
@@ -127,8 +127,25 @@
                         <echo message="---------- This is the source filename with no extension: ${source-filename-no-ext}"/>
                         <echo message="---------- "/>
                         
-                        <property name="current-export" value="${source-filename}_${user}_${instance.DSTAMP}_${instance.TSTAMP}"/>
+                        <property name="current-export" value="${source-filename}_${user}_${instance.detailed-stamp}" id="ce"/>
                         <echo message="---------- This is the current export stamp: ${current-export}"/>
+                        <echo message="---------- "/>
+                        
+                        <mkdir dir="${temp}/${current-export}"/>
+                        
+                        <!-- Resolve the relative filepath for the current export and base directory to be used later on.
+                        This prevents relative paths no longer being useful when being passed in as variables to
+                        the XSLT or other processes where the files are not on the same relative path-->
+                        <dirset dir="${temp}/${current-export}" casesensitive="no" id="relative-temp-dir"/>
+                        <pathconvert refid="relative-temp-dir" property="resolved-temp-dir"/>
+                        <echo message="---------- This is resolved current export directory: ${resolved-temp-dir}"/>
+                        <echo message="---------- "/>
+                        <propertyregex 
+                            property="resolved-base-dir" 
+                            input="${resolved-temp-dir}" 
+                            regexp="(.+)(\\)(bmj)(.+)" 
+                            select="\1\2\3"/>
+                        <echo message="---------- This is the resolved base directory: ${resolved-base-dir}"/>
                         <echo message="---------- "/>
                         
                         <echo message="*************************"/>
@@ -137,53 +154,96 @@
                         <echo message="INSTANCE TIME ${instance.TSTAMP}"/>
                         <echo message="*************************"/>
                         
-                        <echo message="---------- Moving ${source-filename} to ${temp}/${current-export}/source-file/xml ..."/>
+                        <echo message="---------- Moving ${source-filename} to ${resolved-temp-dir}/source-file/xml ..."/>
                         <echo message="---------- "/>
                         
                         <!-- Remove DOCTYPE declaration so XSLT transformations can process the XML -->
-                        <move file="@{article}" todir="${temp}/${current-export}/source-file/xml">
+                        <move file="@{article}" todir="${resolved-temp-dir}/source-file/xml">
                             <filterchain>
                                 <replaceregex pattern="\r|\n" replace="" flags="g" byline="false"/>
                                 <replaceregex pattern="\s+|\t" replace=" " flags="g" byline="false"/>
                                 <replaceregex pattern="(&lt;!DOCTYPE.*?&gt;)" replace="" byline="true"/>
                             </filterchain>
                         </move>
-                        
-                        <xpath 
-                            file="${temp}/${current-export}/source-file/xml/${source-filename}.xml" 
-                            expression="//comment()[contains(.,'Warning: ')]"
-                            outputproperty="extyles-warning"/>
-                        
-                        <!-- If there is a warning message, skip to reporting the message -->
-                        <if>
-                            <contains string="${extyles-warning}" substring="Warning:" casesensitive="no"/>
-                            <then>
-                                <echo message="*******************************"/>
-                                <echo message="THIS XML HAS A WARNING MESSAGE"/>
-                                <echo message="*******************************"/>
-                                <echo message="[${extyles-warning}]"/>
-                                <echo message="*******************************"/>
-                                <runtarget target="create-qa-report"/>
-                            </then>
-                            <else>
-                                <runtarget target="tweak"/>
-                            </else>
-                        </if>
+                        <echo message="---------- This is the full current export filepath: ${resolved-temp-dir}"/>
+                        <echo message="---------- "/>
+                        <runtarget target="check-form"/>
                     </sequential>
                 </for>
             </then>
             <else>
-                <echo message="----------- No files found. Will not process..."/>
+                <echo message="---------- No files found. Will not process..."/>
+            </else>
+        </if>
+    </target>
+    
+    <target name="check-form">
+        <trycatch property="validation-output">
+            <try>
+                <echo message="Checking if ${source-filename}.xml validates against schema"/>
+                <xmlvalidate
+                    failonerror="true"
+                    lenient="true" 
+                    warn="true" 
+                    file="${resolved-temp-dir}/source-file/xml/${source-filename}.xml"/>
+            </try>
+            <catch>
+                <property name="valid" value="false"/>
+                <echo message="---------- The xml is not valid! ${validation-output}"/>
+                <echo message="----------"/>
+            </catch>
+        </trycatch>
+        
+        <echo message="---------- Is the xml valid? ${valid}"/>
+        <echo message="----------"/>
+        
+        <if>
+            <equals arg1="${valid}" arg2="false"/>
+            <then>
+                <echo message="---------- The XML is badly formed, will not continue with process..."/>
+                <echoxml file="${resolved-temp-dir}/source-file/xml/${source-filename}.xml">
+                    <qa-fail-template>
+                        <p>XML creation from eXtyles has failed.</p>
+                    </qa-fail-template>
+                </echoxml>
+                <runtarget target="create-qa-report"/>
+            </then>
+            <else>
+                <echo message="---------- The xml is valid, will continue with the process..."/>
+                <runtarget target="check-for-extyles-warning"/>
+            </else>
+        </if>
+        
+    </target>
+    
+    <target name="check-for-extyles-warning">
+        <xpath 
+            file="${resolved-temp-dir}/source-file/xml/${source-filename}.xml" 
+            expression="//comment()[contains(.,'Warning: ')]"
+            outputproperty="extyles-warning"/>
+        <!-- If there is a warning message, skip to reporting the message -->
+        <if>
+            <contains string="${extyles-warning}" substring="Warning:" casesensitive="no"/>
+            <then>
+                <echo message="*******************************"/>
+                <echo message="THIS XML HAS A WARNING MESSAGE"/>
+                <echo message="*******************************"/>
+                <echo message="[${extyles-warning}]"/>
+                <echo message="*******************************"/>
+                <runtarget target="create-qa-report"/>
+            </then>
+            <else>
+                <runtarget target="tweak"/>
             </else>
         </if>
     </target>
     
     <target name="tweak">
         <echo message="---------Making 'tweaked' directory"/>
-        <mkdir dir="${temp}/${current-export}/jats-xml"/>
+        <mkdir dir="${resolved-temp-dir}/jats-xml"/>
         <echo message="Tweaking JATS XML to replace DTD declaration with schema declaration and outputting to 'tweaked' folder"/>
-        <xslt basedir="${temp}/${current-export}/source-file/xml" 
-            destdir="${temp}/${current-export}/jats-xml" 
+        <xslt basedir="${resolved-temp-dir}/source-file/xml" 
+            destdir="${resolved-temp-dir}/jats-xml" 
             extension=".xml" 
             includes="*.xml, *.XML" 
             style="${xslt}/extyles-tweak.xsl" 
@@ -196,7 +256,7 @@
     <!-- Collect metadata from article using XPath task to be passed as parameters later in the build -->
     <target name="collect-info">
         
-        <property name="source-file-xml" value="${temp}/${current-export}/source-file/xml/${source-filename}.XML" />
+        <property name="source-file-xml" value="${resolved-temp-dir}/source-file/xml/${source-filename}.XML" />
         
         <echo message="----------This is the source file xml ${source-file-xml}"/>
         
@@ -246,7 +306,7 @@
         <echo message="----------Creating temporary article section XML"/>
         
         <xslt in="${source-file-xml}"
-            out="${temp}/${current-export}/alt-values/${source-filename}-alt-values.xml"
+            out="${resolved-temp-dir}/alt-values/${source-filename}-alt-values.xml"
             style="${xslt}/alt-values.xsl" 
             processor="trax">
             <factory name="net.sf.saxon.TransformerFactoryImpl"/>
@@ -255,19 +315,19 @@
         </xslt>
         
         <xpath 
-            file="${temp}/${current-export}/alt-values/${source-filename}-alt-values.xml"
+            file="${resolved-temp-dir}/alt-values/${source-filename}-alt-values.xml"
             expression="//article/section/text()" 
             outputproperty="art-section-alt"/> 
         <xpath 
-            file="${temp}/${current-export}/alt-values/${source-filename}-alt-values.xml"
+            file="${resolved-temp-dir}/alt-values/${source-filename}-alt-values.xml"
             expression="//article/journal/text()" 
             outputproperty="journal-id-meta"/> 
         
         <property name="content-store-article" 
-            value="${content-store}/${journal-id-meta}/articles/${art-section-alt}/${source-filename-no-ext}"/>
+            value="${resolved-base-dir}\test\content\content_store\${journal-id-meta}\articles\${art-section-alt}\${source-filename-no-ext}"/>
         <echo message="---------- This is the source filename with no extension ${source-filename-no-ext}"/>
         <echo message="----------"/>
-        <echo message="---------- This is the location of this article ${content-store-article}"/>
+        <echo message="---------- This is the location of this article: ${content-store-article}"/>
         <echo message="----------"/>
         
         <runtarget target="collect-graphics"/>
@@ -298,21 +358,25 @@
         <echo message="----------"/>
         <!-- ///////////////////////////////////////////////////////////////// -->
         
-        <property name="graphics-found-filepath" value="${temp}/${current-export}/graphics-found/graphics-found-info.xml"/>
-        
         <!-- Checking graphics folder for graphics files -->
         <if>
             <equals arg1="${graphics-present-xml}" arg2="true"/>
             <then>
-                <mkdir dir="${temp}/${current-export}/graphics-found"/>
+                <mkdir dir="${resolved-temp-dir}/graphics-found" id="graphics-found-folder"/>
                 
-                <!-- Create static XML file for each article to insert list of data supplements found in the folder -->
-                <echoxml file="${temp}/${current-export}/graphics-found/graphics-found-info.xml">
+                <!-- Create static XML file for each article to insert list of graphics found in the folder -->
+                <echoxml file="${resolved-temp-dir}/graphics-found/graphics-found-info.xml">
                     <graphics>
                         <graphics-xml></graphics-xml>
                         <graphics-folder></graphics-folder>
                     </graphics>
                 </echoxml>
+                
+                <fileset dir="${resolved-temp-dir}/graphics-found" casesensitive="no" id="graphics-found-file">
+                    <include name="*.xml"/>
+                </fileset>
+                <pathconvert property="graphics-found-filepath" refid="graphics-found-file"/>
+                <echo message="---------- This the is graphics-found filepath: ${graphics-found-filepath}"/>
                 
                 <for list="${graphics-xml-sorted}" param="graphic-file-xml">
                     <sequential>
@@ -320,8 +384,8 @@
                         <echo message="----------"/>
                         
                         <xmltask 
-                            source="${temp}/${current-export}/graphics-found/graphics-found-info.xml" 
-                            dest="${temp}/${current-export}/graphics-found/graphics-found-info.xml"
+                            source="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
+                            dest="${resolved-temp-dir}/graphics-found/graphics-found-info.xml"
                             encoding="utf-8"
                             expandEntityReferences="false">
                             <insert path="graphics/graphics-xml" >
@@ -361,8 +425,8 @@
                                 <echo message="---------- Graphic file found in the folder: ${graphic-file}"/>
                                 <echo message="---------- "/>
                                 
-                                <xmltask source="${temp}/${current-export}/graphics-found/graphics-found-info.xml" 
-                                    dest="${temp}/${current-export}/graphics-found/graphics-found-info.xml" 
+                                <xmltask source="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
+                                    dest="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
                                     encoding="utf-8"
                                     expandEntityReferences="false">
                                     <insert path="/graphics/graphics-folder" >
@@ -375,7 +439,7 @@
                                 <echo message="---------- Converting graphic to JPG for preview..."/>
                                 <echo message="----------"/>
                                 <!-- ImageMagick -->
-                                <mkdir dir="${temp}/${current-export}/preview/graphics"/>
+                                <mkdir dir="${resolved-temp-dir}/preview/graphics"/>
                                 <exec executable="magick" failonerror="false">
                                     <arg value="-density"/>
                                     <arg value="300"/>
@@ -384,19 +448,19 @@
                                     <arg value="1000X1000"/>
                                     <arg value="-layers"/>
                                     <arg value="flatten"/>
-                                    <arg value="${temp}/${current-export}/preview/graphics/${graphic-file}.jpg"/>
+                                    <arg value="${resolved-temp-dir}/preview/graphics/${graphic-file}.jpg"/>
                                 </exec>
                                 
                             </sequential>
                         </for>
                         
-                        <xpath file="${temp}/${current-export}/graphics-found/graphics-found-info.xml" 
+                        <xpath file="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
                             expression="//graphic-xml/text()" outputproperty="graphics-found-info-xml"/>
                         <sortlist property="graphics-info-xml-sorted" value="${graphics-found-info-xml}" delimiter=","/>
                         <echo message="----------This is the sorted list of graphics found in the folder: ${graphics-info-xml-sorted}"/>
                         <echo message="----------"/>
                         
-                        <xpath file="${temp}/${current-export}/graphics-found/graphics-found-info.xml" 
+                        <xpath file="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
                             expression="//graphic-folder/text()" outputproperty="graphics-found-info-folder"/>
                         <sortlist property="graphics-info-folder-sorted" value="${graphics-found-info-folder}" delimiter=","/>
                         <echo message="----------This is the sorted list of graphics found in the folder: ${graphics-info-folder-sorted}"/>
@@ -460,12 +524,19 @@
                             <sequential>
                                 <var name="supp-folder" unset="true"/>
                                 <var name="supp-file-folder" unset="true"/>
+                                
                                 <echo message="----------This supp file was found in the XML: @{supp-file-xml}"/>
-                                <fileset dir="${content-store-article}/data-supp" id="supp-found">
-                                    <include name="@{supp-file-xml}.*"/>
-                                </fileset>
-                                <pathconvert refid="supp-found" property="supp-folder"/>
+                                
+                                <pathconvert property="supp-folder" pathsep="," setonempty="false">
+                                    <path>
+                                        <fileset dir="${content-store-article}/data-supp">
+                                            <include name="@{supp-file-xml}.*"/>
+                                        </fileset>
+                                    </path>
+                                </pathconvert>
+                                
                                 <echo message="---------- This is the matching supp file path: ${supp-folder}"/>
+                                
                                 <if>
                                     <isset property="supp-folder"/>
                                     <then>
@@ -476,14 +547,14 @@
                                             replace="\4" 
                                             global="true"/>
                                         <echo message="----------This supp file was found in the folder: ${supp-file-folder} "/>
-                                        <echo file="${temp}/${current-export}/supps/supps.txt" append="true" message="${supp-file-folder},"/>
+                                        <echo file="${resolved-temp-dir}/supps/supps.txt" append="true" message="${supp-file-folder},"/>
                                     </then>
                                 </if>
                             </sequential>
                         </for>
                     </then>
                 </if>
-                <loadfile property="supps-text-file" srcfile="${temp}/${current-export}/supps/supps.txt" failonerror="false"/>
+                <loadfile property="supps-text-file" srcfile="${resolved-temp-dir}/supps/supps.txt" failonerror="false"/>
                 <sortlist property="supps-text" value="${supps-text-file}" delimiter="," />
                 <echo message="----------These are the supp files from the text file: ${supps-text}"/>
             </then>
@@ -496,7 +567,7 @@
         <echo message="Creating metadata info XML"/>
         <xslt 
             in="${source-file-xml}" 
-            out="${temp}/${current-export}/qa/${source-filename}-meta.xml"
+            out="${resolved-temp-dir}/qa/${source-filename}-meta.xml"
             style="${xslt}/metadata.xsl" processor="trax">
             <factory name="net.sf.saxon.TransformerFactoryImpl"/>
             <param name="article-id" expression="${art-id}"/>
@@ -509,7 +580,7 @@
             <param name="graphics-present-xml" expression="${graphics-present-xml}"/>
             <param name="journal" expression="${journal-id}"/>
             <param name="journal-nlm" expression="${journal-id-nlm-ta}"/>
-            <param name="source-file" expression="@{source-file}"/>
+            <param name="source-file" expression="${resolved-temp-dir}/source-file/xml/${source-filename}.xml"/>
             <param name="source-filename" expression="${art-id}"/>
             <param name="supp-files-in-folder" expression="${supps-text}"/>
             <param name="supp-files-in-xml" expression="${supps-xml-sorted}"/>
@@ -517,48 +588,20 @@
         <runtarget target="run-schematron-validation"/>
     </target>
     
+    
     <target name="run-schematron-validation">
         <!-- Run Schematron on article and output XML report file (SVRL).-->
-        <mkdir dir="${temp}/${current-export}/qa"/>
+        <mkdir dir="${resolved-temp-dir}/qa"/>
+        <echo message="---------- This is the QA directory: ${resolved-temp-dir}/qa"/>
+        <echo message="---------- This is the file to be output in the qa directory: ${source-filename}-result-${start.DSTAMP}-${start.TSTAMP}.xml"/>
         <schematron 
             file="${source-file-xml}"
             schema="${schematron}/BMJ_business_rules.sch" 
             failonerror="false"
-            OutputDir="${temp}/${current-export}/qa"
+            OutputDir="${resolved-temp-dir}/qa"
             outputFilename="${source-filename}-result-${start.DSTAMP}-${start.TSTAMP}.xml"
             debugmode="false" 
             queryLanguageBinding="xslt2"/>
-        <runtarget target="convert-to-nlm"/>
-    </target>
-    
-    <target name="convert-to-nlm">
-        <!-- Convert JATS-tweaked to BMJ-NLM XML -->
-        <echo message="Converting JATS to BMJ-NLM XML"/>
-        <xslt 
-            in="${temp}/${current-export}/jats-xml/${source-filename}.xml" 
-            out="${temp}/${current-export}/nlmxml/${source-filename}.xml"
-            extension=".xml" 
-            style="${xslt}/JATS-to-BMJ_NLM.xsl" 
-            processor="trax">
-            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
-        </xslt>
-        <runtarget target="validate-nlm"/>
-    </target>
-    
-    <target name="validate-nlm">
-        <!-- Schema validation to check that transformations from JATS have created a valid NLM XML -->
-        <trycatch property="valid">
-            <try>
-                <schemavalidate noNamespaceFile="${schemas}/nlm/2.3/journalpublishing.xsd" 
-                    file="${temp}/${current-export}/nlmxml/${source-filename}.xml" >
-                </schemavalidate>
-            </try>
-            <catch>
-                <property name="schema-invalid" value="true"/>
-                <echo message="---------- The NLM XML is invalid to NLM2.3 schema!"/>
-            </catch>
-        </trycatch>
-        <echo message="Is the NLM XML valid? ${valid}"/>
         <runtarget target="create-preview-html"/>
     </target>
     
@@ -566,8 +609,8 @@
         <!-- Create JATS preview HTML -->
         <echo message="Creating JATS preview HTML"/>
         <xslt 
-            in="${temp}/${current-export}/jats-xml/${source-filename}.xml"
-            out="${temp}/${current-export}/preview/jats-preview/${source-filename}.html"
+            in="${resolved-temp-dir}/jats-xml/${source-filename}.xml"
+            out="${resolved-temp-dir}/preview/jats-preview/${source-filename}.html"
             style="${xslt}/JATS_NLM_preview.xsl" 
             processor="trax">
             <factory name="net.sf.saxon.TransformerFactoryImpl"/>
@@ -578,13 +621,15 @@
     <target name="create-qa-report">
         <!-- Create HTML QA report from Schematron report XML -->
         <echo message="Creating HTML Schematron report"/>
+        
         <xslt
-            in="${temp}/${current-export}/source-file/xml/${source-filename}.xml"
-            out="${temp}/${current-export}/qa/${source-filename}-QA-report.html"
+            in="${resolved-temp-dir}/source-file/xml/${source-filename}.xml"
+            out="${resolved-temp-dir}/qa/${source-filename}-QA-report.html"
             style="${xslt}/qa-html.xsl" processor="trax">
             <factory name="net.sf.saxon.TransformerFactoryImpl"/>
             <param name="article-section" expression="${art-section}"/>
             <param name="art-id" expression="${source-filename-no-ext}"/>
+            <param name="base-dir" expression="${resolved-temp-dir}"/>
             <param name="content-store" expression="${content-store-article}"/>
             <param name="extyles-xml" expression="${content-store-article}/wip/${source-filename}.xml"/>
             <param name="graphic-file-extension" expression="${graphic-file-extension}"/>
@@ -592,9 +637,10 @@
             <param name="graphics-found-filepath" expression="${graphics-found-filepath}"/>
             <param name="graphics-info-folder-sorted" expression="${graphics-info-folder-sorted}"/>
             <param name="graphics-info-xml-sorted" expression="${graphics-info-xml-sorted}"/>
-            <param name="meta" expression="${temp}/${current-export}/qa/${source-filename}-meta.xml"/>
+            <param name="meta" expression="${resolved-temp-dir}/qa/${source-filename}-meta.xml"/>
+            <param name="qa-svrl" expression="${resolved-temp-dir}/qa/${source-filename}-result-${start.DSTAMP}-${start.TSTAMP}.xml"/>
             <param name="schema-invalid" expression="${schema-invalid}"/>
-            <param name="source" expression="${temp}/${current-export}/source-file/xml/${source-filename}.xml"/>
+            <param name="source" expression="${resolved-temp-dir}/source-file/xml/${source-filename}.xml"/>
             <param name="supp-files-home" expression="${content-store-article}/data-supp"/>
         </xslt>
         
@@ -602,27 +648,35 @@
         <echo message="---------- Opening QA Report HTML..."/>
         <!-- Open up QA HTML for invalid eXtyles document in user's browser-->
         <echo message="Opening QA results in browser"/>
-        <echo message="This is the source directory: ${temp}/${current-export}/qa"/>
+        <echo message="This is the source directory: ${resolved-temp-dir}/qa"/>
         <echo message="----------"/>
-        <echo message="This is the source filename: ${source-filename}-QA-report.html"/>
+        <echo message="This is the QA Report filename: ${source-filename}-QA-report.html"/>
         <echo message="----------"/>
-        <echo message="This is the QA Report location: ${temp}/${current-export}/qa/${source-filename}-QA-report.html"/>
+        <echo message="This is the QA Report location: ${resolved-temp-dir}/qa/${source-filename}-QA-report.html"/>
         <!-- File paths with spaces in them require &quot; around the value for the path and to make 
             the CMD parse this properly, extra &quot; are required before the path itself -->
         <exec executable="cmd">
             <arg value="/c"/>
             <arg value="start"/>
             <arg value="&quot;&quot;"/>
-             <arg value="&quot;${temp}/${current-export}/qa/${source-filename}-QA-report.html&quot;"/>
+             <arg value="&quot;${resolved-temp-dir}/qa/${source-filename}-QA-report.html&quot;"/>
         </exec>
         <!-- If there is a warning message, skip to reporting the message -->
         <if>
-            <contains string="${extyles-warning}" substring="Warning:" casesensitive="no"/>
+            <equals arg1="${valid}" arg2="false"/>
             <then>
                 <echo message="****************************************************************************"/>
-                <echo message="* Article has warning. Reporting error and ending process for this article *"/>
+                <echo message="* XML is badly formed. Reporting error and ending process for this article *"/>
                 <echo message="****************************************************************************"/>
             </then>
+            <elseif>
+                <contains string="${extyles-warning}" substring="Warning:" casesensitive="no"/>
+                <then>
+                    <echo message="****************************************************************************"/>
+                    <echo message="* Article has warning. Reporting error and ending process for this article *"/>
+                    <echo message="****************************************************************************"/>
+                </then>
+            </elseif>
             <else>
                 <runtarget target="convert-to-id-xml"/>
             </else>
@@ -633,26 +687,12 @@
         <!-- Convert BMJ-JATS XML to InDesign XML -->
         <echo message="Converting BMJ-JATS XML to InDesign XML for in-house typesetting"/>
         <xslt 
-            in="${temp}/${current-export}/jats-xml/${source-filename}.xml"
-            out="${temp}/${current-export}/id-xml/${source-filename}-JATS.xml"
+            in="${resolved-temp-dir}/jats-xml/${source-filename}.xml"
+            out="${resolved-temp-dir}/id-xml/${source-filename}-JATS.xml"
             style="${xslt}/jats-to-id.xsl" 
             processor="trax" 
             force="true">
             <factory name="net.sf.saxon.TransformerFactoryImpl"/>
-        </xslt>
-        <!-- Convert BMJ-NLM XML to InDesign XML -->
-        <echo message="Converting BMJ-NLM XML to InDesign XML for in-house typesetting"/>
-        <xslt 
-            in="${temp}/${current-export}/nlmxml/${source-filename}.xml"
-            out="${temp}/${current-export}/id-xml/${source-filename}.xml"
-            style="${xslt}/nlm-to-id.xsl" 
-            processor="trax" 
-            force="true">
-            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
-            <param name="journal" expression="${journal-id-meta}"/>
-            <param name="art-type" expression="${art-type}"/>
-            <param name="art-section" expression="${art-section-alt}"/>
-            <param name="output-location" expression="${temp}/${current-export}/id-xml"/>
         </xslt>
         <runtarget target="move-files"/>
     </target>
@@ -665,44 +705,34 @@
         <mkdir dir="${content-store-article}/id-xml"/>
         <mkdir dir="${content-store-article}/info"/>
         <mkdir dir="${content-store-article}/jats-xml"/>
-        <mkdir dir="${content-store-article}/nlmxml"/>
         <mkdir dir="${content-store-article}/qa"/>
         <if>
-            <available file="${temp}/${current-export}/preview/graphics" type="dir"/>
+            <available file="${resolved-temp-dir}/preview/graphics" type="dir"/>
             <then>
                 <move todir="${content-store-article}/preview/graphics" encoding="utf-8">
-                    <fileset dir="${temp}/${current-export}/preview/graphics"/>
+                    <fileset dir="${resolved-temp-dir}/preview/graphics"/>
                 </move>
                 <delete dir="${content-store-article}/graphics/converted"/>
             </then>
         </if>
-        <move file="${temp}/${current-export}/id-xml/${source-filename}.xml" 
-            tofile="${content-store-article}/id-xml/${source-filename-no-ext}.xml" 
-            encoding="utf-8"/>
-        <move file="${temp}/${current-export}/id-xml/${source-filename}-JATS.xml" 
+        <move file="${resolved-temp-dir}/id-xml/${source-filename}-JATS.xml" 
             tofile="${content-store-article}/id-xml/${source-filename-no-ext}-JATS.xml" 
             encoding="utf-8"/>
-        <move file="${temp}/${current-export}/jats-xml/${source-filename}.xml" 
+        <move file="${resolved-temp-dir}/jats-xml/${source-filename}.xml" 
             tofile="${content-store-article}/jats-xml/${source-filename-no-ext}.xml" 
             encoding="utf-8"/>
-        <copy file="${temp}/${current-export}/qa/${source-filename}-QA-report.html" 
-            tofile="${content-store-article}/qa/${source-filename-no-ext}-QA-report.html" 
-            encoding="utf-8"/>
-        <move file="${temp}/${current-export}/nlmxml/${source-filename}.xml" 
-            tofile="${content-store-article}/nlmxml/${source-filename-no-ext}.xml" 
-            encoding="utf-8"/>
-        <move file="${temp}/${current-export}/qa/${source-filename}-result-${instance.DSTAMP}-${instance.TSTAMP}.xml" 
+        <copy file="${resolved-temp-dir}/qa/${source-filename}-result-${instance.DSTAMP}-${instance.TSTAMP}.xml" 
             tofile="${content-store-article}/qa/${source-filename-no-ext}-result-${instance.DSTAMP}-${instance.TSTAMP}.xml" 
             encoding="utf-8"/>
-        <move file="${temp}/${current-export}/qa/${source-filename}-meta.xml" 
+        <move file="${resolved-temp-dir}/qa/${source-filename}-meta.xml" 
             tofile="${content-store-article}/info/${source-filename-no-ext}-meta.xml" 
             encoding="utf-8"/>
-        <move file="${temp}/${current-export}/preview/jats-preview/${source-filename}.html" 
+        <move file="${resolved-temp-dir}/preview/jats-preview/${source-filename}.html" 
             tofile="${content-store-article}/preview/jats-preview/${source-filename-no-ext}.html" 
             encoding="utf-8"/>
         <delete dir="${content-store-article}/source-file"/>
         <copy todir="${content-store-article}/source-file" encoding="utf-8">
-            <fileset dir="${temp}/${current-export}/source-file"/>
+            <fileset dir="${resolved-temp-dir}/source-file"/>
         </copy>
         <move file="${content-store-article}" 
             todir="${content-store}/${journal-id-meta}/articles/${art-section-alt}" 
@@ -718,8 +748,8 @@
         <!--<runtarget target="update-paw"/>-->
     </target>
     
-    <target name="update-paw">
-        <!--<echo message="********** THIS IS THE SOURCE FILENAME: ${source-filename-no-ext}"/>
+    <!--<target name="update-paw">
+        <echo message="********** THIS IS THE SOURCE FILENAME: ${source-filename-no-ext}"/>
         <propertyregex 
             property="abridged-article-check" 
             input="${source-filename-no-ext}" 
@@ -734,6 +764,7 @@
         </condition>
         <switch value="${abridged-version}">
             <case value="false">
+                <echo message="******************************************************************************************"/>
                 <echo message="Article naming convention suggests full article, will check and update PAW if necessary..."/>
                 <echo message="******************************************************************************************"/>
                 <!-\- PAW API interaction -\->
@@ -857,8 +888,8 @@
             <case value="true">
                 <echo message="Article naming convention suggests abridged article, will not update PAW..."/>
             </case>
-        </switch>-->
+        </switch>
         
-    </target>
+    </target>-->
     
 </project>

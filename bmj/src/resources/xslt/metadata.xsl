@@ -30,14 +30,14 @@
             <elps></elps>
             <graphics-in-xml>
                 <xsl:if test="$graphics-present-xml = 'true'">
-                    <xsl:for-each select="doc($graphics-found-filepath)//graphic-xml">
+                    <xsl:for-each select="doc(concat('file:///',$graphics-found-filepath))//graphic-xml">
                         <graphic><xsl:value-of select="."/></graphic>
                     </xsl:for-each>
                 </xsl:if>
             </graphics-in-xml>
             <graphics-in-folder>
                 <xsl:if test="$graphics-folder-available = 'true'">
-                    <xsl:for-each select="doc($graphics-found-filepath)//graphic-folder">
+                    <xsl:for-each select="doc(concat('file:///',$graphics-found-filepath))//graphic-folder">
                         <graphic><xsl:value-of select="."/></graphic>
                     </xsl:for-each>
                 </xsl:if>
