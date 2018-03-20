@@ -3,7 +3,7 @@ This is a repository for BMJ content processing. It includes BMJ, Careers and St
 
 Production and publication code mainly uses ANT builds and uses a variety of different extensions and programs as part of the validation, transformation, PDF creation, image conversion and interaction with APIs. The ANT builds are initiated by a windows batch file which is either launched from a SendTo on the users desktop or run on a shedule, depending on the nature of that process.
 
-The processes depend upon the following:
+The processes depend upon the following resources:
 
 - apache-ant-1.9.4 for build pipelines
 - Curl for API interacion
