@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="scp-to-student">
+    
+    <description/>
+    
+    <target name="scp-to-student" depends="scp-and-update-site"/>
+    
+    <!--Directories for testing process-->
+    
+    <tstamp>
+        <format property="PUB-YEAR" pattern="yyyy"/>
+    </tstamp>
+    
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    
+    <property name="log-info" value="${log}/scheduled-scp-student-${start.DSTAMP}-info.txt"/>
+    
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    
+    <target name="scp-and-update-site">
+        
+        <fileset dir="${uploadtoStudent}/sbmj" id="xml-files">
+            <include name="**/*.xml"/>
+        </fileset>
+        <pathconvert refid="xml-files" property="xml-list"/>
+        <echo message="---------- This is the list of xml files: ${xml-list}"/>
+        
+        <condition property="xml-present">
+            <length string="${xml-list}" when="gt" length="0"/>
+        </condition>
+        <echo message="---------- Is an xml present? ${xml-present}"/>
+        
+        <if>
+            <available file="${uploadtoStudent}/graphics" type="dir"/>
+            <then>
+                <fileset dir="${uploadtoStudent}/graphics" id="graphic-files">
+                    <include name="*.jpg"/>
+                </fileset>
+                
+                <pathconvert refid="graphic-files" property="graphic-list"/>
+                <echo message="---------- This is the list of graphic files: ${graphic-list}"/>
+                
+                <condition property="graphics-present">
+                    <length string="${graphic-list}" when="gt" length="0"/>
+                </condition>
+                <echo message="---------- Are any graphics present? ${graphics-present}"/>
+            </then>
+        </if>
+        
+        <if>
+            <isset property="graphics-present"/>
+            <then>
+                        
+                        
+                        <scp failonerror="true" password="${scp.student.live.pass}" sftp="true" 
+                             todir="${scp.student.live.user}@${scp.student.live.server}:${scp.student.live.remotedir.images}"
+                             trust="true" verbose="true">
+                             <fileset dir="${uploadtoStudent}/graphics" id="graphic-files">
+                                 <include name="*.jpg"/>
+                             </fileset>
+                        </scp>
+                        
+                        <scp failonerror="true" password="${scp.student.live.pass}" sftp="true" 
+                             todir="${scp.student.live.user}@${scp.student.live.server.two}:${scp.student.live.remotedir.images}"
+                             trust="true" verbose="true">
+                             <fileset dir="${uploadtoStudent}/graphics" id="graphic-files">
+                                 <include name="*.jpg"/>
+                             </fileset>
+                         </scp>
+                        
+                        <delete>
+                            <fileset refid="graphic-files"/>
+                        </delete>
+            </then>
+            <else>
+                <echo message="---------- No graphics present. Will not attempt to copy graphics."/>
+            </else>
+        </if>
+        
+        
+        <if>
+            <isset property="xml-present"/>
+            <then>
+                <for list="${xml-list}" param="xml" delimiter=";">
+                    <sequential>
+                        
+                        <echo message="---------- This is an xml file location: @{xml}"/>
+                        
+                        <scp 
+                            failonerror="true" 
+                            password="${scp.xmlstore.live.pass}" 
+                            sftp="true" 
+                            todir="${scp.xmlstore.live.user}@${scp.xmlstore.live.server}:${scp.xmlstore.live.remotedir.xml}/student-${DSTAMP}${TSTAMP}"
+                            trust="true" verbose="true" >
+                            <fileset file="@{xml}"/>
+                        </scp>
+                        
+                        <mkdir dir="${uploadtoStudent}/response"/>
+                        
+                        <property location="${uploadtoStudent}/response" name="get-response"/>
+                        
+                        <get dest="${get-response}/xml-store-response.txt"
+                            src="${xmlstore.url}/student-${DSTAMP}${TSTAMP}/student/loadData.html"/>
+                        
+                        <!-- 4. send update request to Student  -->
+                        <!--      call student article update url to advise files arrived -->
+                        <basename file="@{xml}" property="filename" suffix=".xml"/>
+                        <echo message="---------- This is the username: ${student.updateurl.user}"/>
+                        <echo message="---------- This is the password: ${student.updateurl.pass}"/>
+                        <get 
+                            dest="${get-response}/student-response.txt"
+                            src="${student.updateurl}?id=${filename}" 
+                            username="${student.updateurl.user}" 
+                            password="${student.updateurl.pass}"/>
+                        <get 
+                            dest="${get-response}/student-response.txt"
+                            src="${student.updateurl.server.two}?id=${filename}" 
+                            username="${student.updateurl.user}" 
+                            password="${student.updateurl.pass}"/>
+                        
+                        <delete file="@{xml}"/>
+                    </sequential>
+                </for>
+            </then>
+            <else>
+                <echo message="---------- No XML present. Will not attempt to look for xml files."/>
+            </else>
+        </if>
+        
+        
+        
+        
+    </target>
+    
+</project>

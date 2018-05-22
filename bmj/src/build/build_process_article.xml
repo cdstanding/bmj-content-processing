@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." name="build_process_article" default="process-loop">
+    
+    <description>
+        Overview:
+        
+        This is a generic module for processing a single article or multiple articles at the same time in a sequential loop. 
+        
+        This assumes the user is selecting an article folder in the content store, right clicking and then selecting their
+        preferred process. 
+        
+        Any files processed are expected to be contained in the standard content store folder structure (see folders in the 
+        content store).
+        
+        Description by linear step:
+        
+        [1] The sorted list of files/folders selected by the user is fed into the sequential loop
+        
+        [2] Check XML source folder is available
+        
+        [2.1] Check XML source file is available
+        
+        [2.2] If folder and file are available then source file name is set as a property
+        
+        [3] Check JATS XML folder is available
+        
+        [3.1] Check NLM XML folder is available
+        
+        [3.2] Check JATS XML file is available
+        
+        [3.3] Check NLM XML file is available
+        
+        [3.4] If folders and files are available 'file-check-and-collect' build will start the check and collection of any referenced binary files
+        
+        [3.5] Run the main target that was passed in as the process type. 
+        This is the value passed in dependent on which process was initiated by the user.
+        
+        Properties are set in
+        
+        \\bmjprod1\Users\la_bmjprod\dev\bmj\build_process_article.properties
+        
+    </description>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    <taskdef name="schematron" classname="com.schematron.ant.SchematronTask" classpath="lib/ant-schematron.jar"/>
+    <!-- ////////////////////////// -->
+    
+    <import file="build_file_check_and_collect.xml"/>
+    
+    <sortlist property="sorted-files" value="${inputdirlist}" delimiter=","/>
+    
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    <tstamp prefix="start"/>
+    <property name="log-info" value="${log}/${launchedby}_${time-stamp}.txt"/>
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    <property name="temp-instance" value="${temp}/${launchedby}_${time-stamp}"/>
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <mkdir dir="${temp-instance}"/>
+    
+    
+    <echo message="&#x000D;"/>
+    <echo message="---------- Folder/s selected:"/>
+    <echo message="&#x000D;"/>
+    <echo message="${sorted-files}"/>
+    <echo message="&#x000D;"/>
+    
+    <!--  The value for 'main-process-build' is set by 'main-build' in the batch file which launches this build -->
+    <property name="main-process-build" value="${main-build}"/>
+    <!--  The value for 'main-process-target' is set by 'launchedby' the batch file which launches this build -->
+    <property name="main-process-target" value="${launchedby}"/>
+    
+    
+    <import file="build_file_check_and_collect.xml"/>
+    <!-- 
+        The value for 'main-process-build' is set in the batch file that launches this build.
+        This will be either of the following:
+        - build_QA.xml
+        - build_makePDF.xml
+    -->
+    <import file="${main-process-build}"/>
+    
+    <target name="process-loop">
+        <!-- [1] The sorted list of files/folders selected by the user is fed in here -->
+        <for list="${sorted-files}" param="article-folder" delimiter=",">
+            <sequential>
+                <!-- Variables to be unset here when the loop begins again for the next article in the sorted list -->
+                <var name="article-name" unset="true"/>
+                <var name="article-folder" unset="true"/>
+                <var name="graphics-available" unset="true"/>
+                <var name="graphic-file" unset="true"/>
+                <var name="graphic-file-extension" unset="true"/>
+                <var name="graphics-folder-available" unset="true"/>
+                <var name="graphics-found-info-folder" unset="true"/>
+                <var name="graphics-found-info-xml" unset="true"/>
+                <var name="graphics-info-folder-sorted" unset="true"/>
+                <var name="graphics-info-xml-sorted" unset="true"/>
+                <var name="graphics-in-xml" unset="true"/>
+                <var name="graphics-in-folder" unset="true"/>
+                <var name="graphics-xml" unset="true"/>
+                <var name="graphics-xml-text" unset="true"/>
+                <var name="jats-dir-with-file" unset="true"/>
+                <var name="jats-xml-file" unset="true"/>
+                <var name="jats-xml-name" unset="true"/>
+                <var name="nlm-dir-with-file" unset="true"/>
+                <var name="nlm-xml-file" unset="true"/>
+                <var name="nlm-xml-name" unset="true"/>
+                <var name="source-dir-with-file" unset="true"/>
+                <var name="source-xml" unset="true"/>
+                <var name="source-xml-file" unset="true"/>
+                <var name="source-xml-name" unset="true"/>
+                <var name="supps-available" unset="true"/>
+                <var name="supps-in-xml" unset="true"/>
+                <var name="supps-in-folder" unset="true"/>
+                <var name="supps-xml" unset="true"/>
+                <var name="source-xml-file" unset="true"/>
+                <var name="supps-xml-sorted" unset="true"/>
+                <var name="supps-xml-text" unset="true"/>
+                <var name="temp-article-folder" unset="true"/>
+                <var name="xml-file-available" unset="true"/>
+                <!-- ///////////////////////////////////// -->
+                
+                <echo message="---------- This is the source folder for the article: @{article-folder}"/>
+                
+                <propertyregex 
+                    input="@{article-folder}" 
+                    property="article-name" 
+                    regexp="(.+)(\\)(.+)" 
+                    replace="\3"
+                    global="true"/>
+                
+                <echo message="---------- This is the article name ${article-name}"/>
+                
+                <property name="temp-article-folder" value="${temp-instance}\${article-name}"/>
+                
+                <if>
+                    <!-- [2] Check XML source folder is available -->
+                    <available file="@{article-folder}\source-file\xml" type="dir"/>
+                    <then>
+                        <fileset dir="@{article-folder}\source-file\xml" casesensitive="no" id="source-xml">
+                            <include name="${article-name}.*"/>
+                        </fileset>
+                        <pathconvert refid="source-xml" property="source-xml-file"/>
+                        <if>
+                            <!-- [2.1] Check XML source file is available -->
+                            <available file="${source-xml-file}"/>
+                            <then>
+                                <!-- [2.2] If folder and file are available then source file name is set as a property -->
+                                <echo message="----------"/>
+                                <echo message="---------- This is the source xml for this process: ${source-xml-file}"/>
+                                <echo message="----------"/>
+                                
+                                <propertyregex 
+                                    input="${source-xml-file}" 
+                                    property="source-xml-name" 
+                                    regexp="(.+)(\\)(.+)(\.)(.+)" 
+                                    replace="\3"
+                                    global="true"/>
+                                <echo message="---------- This is the source xml without file extension ${source-xml-name}"/>
+                            </then>
+                            <else>
+                                <fail message="---------- !!!!!No source XML source file available for this process!!!!!"/>
+                            </else>
+                        </if>
+                    </then>
+                    <else>
+                        <fail message="---------- !!!!!No source folder available for this process!!!!!"/>
+                    </else>
+                </if>
+                
+                <if>
+                    <!-- [3] Check JATS XML folder is available -->
+                    <available file="@{article-folder}\jats-xml" type="dir"/>
+                    <then>
+                        <if>
+                            <!-- [3.1] Check NLM XML folder is available -->
+                            <available file="@{article-folder}\nlmxml" type="dir"/>
+                            <then>
+                                <fileset dir="@{article-folder}\jats-xml" casesensitive="no" id="jats-dir-with-file">
+                                    <include name="${article-name}.*"/>
+                                </fileset>
+                                <fileset dir="@{article-folder}\nlmxml" casesensitive="no" id="nlm-dir-with-file">
+                                    <include name="${article-name}.*"/>
+                                </fileset>
+                                
+                                <pathconvert refid="jats-dir-with-file" property="jats-xml-file"/>
+                                <echo message="---------- This is the JATS xml source directory with file: ${jats-xml-file}"/>
+                                
+                                <pathconvert refid="nlm-dir-with-file" property="nlm-xml-file"/>
+                                <echo message="---------- This is the NLM xml source directory with file: ${nlm-xml-file}"/>
+                                
+                                <propertyregex 
+                                    input="${jats-xml-file}" 
+                                    property="jats-xml-name" 
+                                    regexp="(.+)(\\)(.+)(\.)(.+)" 
+                                    replace="\3"
+                                    global="true"/>
+                                <echo message="---------- This is the JATS article xml without file extension ${jats-xml-name}"/>
+                                
+                                <propertyregex 
+                                    input="${nlm-xml-file}" 
+                                    property="nlm-xml-name" 
+                                    regexp="(.+)(\\)(.+)(\.)(.+)" 
+                                    replace="\3"
+                                    global="true"/>
+                                <echo message="---------- This is the NLM article xml without file extension ${nlm-xml-name}"/>
+                                
+                                <if>
+                                    <!-- [3.2] Check JATS XML file is available -->
+                                    <available file="${jats-xml-file}"/>
+                                    <then>
+                                        <if>
+                                            <!-- [3.3] Check NLM XML file is available -->
+                                            <available file="${nlm-xml-file}"/>
+                                            <then>
+                                                <!-- 
+                                                    [3.4] If folders and files are available 'file-check-and-collect' build 
+                                                    will start the check and collection of any referenced binary files -->
+                                                <antcall target="file-check-and-collect">
+                                                    <param name="article-folder" value="@{article-folder}"/>
+                                                </antcall>
+                                                
+                                                <!-- [3.5] 
+                                                    Run the main target that was passed in as the process type. 
+                                                    This will be from whatever batch file the Tech Ed's send-to 
+                                                    shortcut pointed to -->
+                                                <antcall target="${main-process-target}">
+                                                    <param name="article-folder" value="@{article-folder}"/>
+                                                    <param name="temp-jats-xml" value="${temp-article-folder}\jats-xml\${jats-xml-name}.xml"/>
+                                                    <param name="temp-nlm-xml" value="${temp-article-folder}\nlmxml\${nlm-xml-name}.xml"/>
+                                                </antcall>
+                                                
+                                            </then>
+                                            <else>
+                                                <fail message="---------- !!!!!No NLM XML source file available for this process!!!!!"/>
+                                            </else>
+                                        </if>
+                                    </then>
+                                    <else>
+                                        <fail message="---------- !!!!!No JATS XML source file available for this process!!!!!"/>
+                                    </else>
+                                </if>
+                            </then>
+                            <else>
+                                <fail message="---------- !!!!!No NLM XML source folder available for this process!!!!!"/>
+                            </else>
+                        </if>
+                    </then>
+                    <else>
+                        <fail message="---------- !!!!!No JATS XML source folder available for this process!!!!!"/>
+                    </else>
+                </if>
+                
+                
+            </sequential>
+        </for>
+    </target>
+    
+    
+    
+</project>

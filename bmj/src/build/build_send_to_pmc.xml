@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="send-to-pmc" name="Send_to_pmc">
+    <description>
+        Overview: 
+        
+        This build runs on the back of sending an article to Highwire.
+        
+        A check is made to see whether the article is Open Access. If the article is OA then process and package files and Upload to the PMC folder.
+    </description>
+    
+    <target name="send-to-pmc" depends="process-files"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    
+    <echo message="----------This is the temp UploadtoBMJCMS folder: ${temp-uploadtobmjcms}"/>
+    <echo message="----------This UploadtoPMC folder: ${uploadtoPMC}"/>
+    
+    
+    <!-- [1] Check for autobatch file and set a condition if present-->
+    <fileset dir="${temp-uploadtobmjcms}/_autobatch_" id="autobatch-found">
+        <include name="*.xml"/>
+    </fileset>
+    
+    <property name="temp-pmc" value="${temp-instance}/pmc"/>
+    
+    <target name="process-files">
+        <echo message="---------- SENDING TO PMC..."/>
+        <mkdir dir="${temp-pmc}"/>
+        
+        <!-- A condition is set if autobatch is present -->
+        <condition property="autobatch-present">
+            <resourcecount refid="autobatch-found" when="greater" count="0"/>
+        </condition>
+        <echo message="----------Is an autobatch xml available?: ${autobatch-present}"/>
+        <pathconvert refid="autobatch-found" property="autobatch-filepaths"/>
+        <echo message="----------These are the autobatch filepaths: ${autobatch-filepaths}"/>
+        <propertyregex property="autobatch-files" input="${autobatch-filepaths}" regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" replace="\4"/>
+        <echo message="----------This is the list of autobatch files ${autobatch-files}"/>
+        
+        <if>
+            <!-- [2] If autobatch is present the list of collected autobatch filepaths is fed into
+            a sequential loop in order to start processing individual articles -->
+            <isset property="autobatch-present"/>
+            <then>
+                <for list="${autobatch-filepaths}" param="autobatch-filepath" delimiter=";">
+                    <sequential>
+                        
+                        <var name="article-name" unset="true"/>
+                        <var name="article-name-no-ext" unset="true"/>
+                        <var name="autobatch-file" unset="true"/>
+                        <var name="date-day" unset="true"/>
+                        <var name="elocator" unset="true"/>
+                        <var name="elocator-bmj" unset="true"/>
+                        <var name="elocator-bmj-vol-pmc" unset="true"/>
+                        <var name="item" unset="true"/>
+                        <var name="location-article" unset="true"/>
+                        <var name="volume" unset="true"/>
+                        
+                        <echo message="----------This is an individual autobatch filepath: @{autobatch-filepath}"/>
+                        <propertyregex property="article-name" input="@{autobatch-filepath}" 
+                            regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" replace="\4"/>
+                        <echo message="----------This is an autobatch file: ${article-name}"/>
+                        <propertyregex property="article-name-no-ext" input="${article-name}" regexp="^(.+)(\.xml)" replace="\1"/>
+                        <echo message="----------This is the article name with no extension: ${article-name-no-ext}"/>
+                        <xpath file="@{autobatch-filepath}" expression="//item/@xlink:href" outputproperty="item">
+                            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+                        </xpath>
+                        <echo message="----------This is the relative article location from the metadata file: ${item}"/>
+                        <propertyregex property="location-article" input="${item}" regexp="^(\..\/)(.+)" replace="\2"/>
+                        <echo message="----------This is the article location with article: ${temp-uploadtobmjcms}\${location-article}"/>
+                        <xpath file="${temp-uploadtobmjcms}\${location-article}" expression="//elocation-id/text()" outputproperty="elocator"/>
+                        <property name="elocator-bmj" value="bmj.${elocator}"/>
+                        
+                        <!-- Get volume number from xml -->
+                        <echo message="----------This is the elocator with bmj suffix: ${elocator-bmj}"/>
+                        <xpath file="@{autobatch-filepath}" expression="//metadata/meta[@name='Volume']/text()" outputproperty="volume-from-xml"/>
+                        <!-- ////////////////////////////////////////////////////////////////////////// -->
+                        
+                        <property name="elocator-bmj-vol-pmc" value="bmj_${volume.number}_${elocator}"/>
+                        <echo message="----------This is the folder name with elocator for PMC: ${elocator-bmj-vol-pmc}"/>
+                        
+                        <!-- Check that article is Open Access -->
+                        <xpath 
+                            file="${temp-uploadtobmjcms}\${location-article}" 
+                            expression="//license/@license-type"
+                            outputproperty="oa"/>
+                        <echo message="----------Is this article open access? ${oa}"/>
+                        
+                        <if>
+                            <equals arg1="${oa}" arg2="open-access"/>
+                            <then>
+                                
+                                <!-- Working on NLM XML at the moment but in future this could be changed to send JATS instead -->
+                                <copy file="${temp-uploadtobmjcms}\${location-article}" todir="${temp-instance}\pmc\${elocator-bmj-vol-pmc}\jats-xml"/>
+                                
+                                <!-- Existing PDF is checked for, condition is set and, if true 'pdf-present' property is set
+                                and original PDF is copied to temp PDF folder -->
+                                <if>
+                                    <available file="${temp-hwexpress}\${elocator-bmj}\pdf\bmj.${elocator}.pdf"/> 
+                                    <then>
+                                        <fileset dir="${temp-hwexpress}\${elocator-bmj}\pdf" id="pdf-found">
+                                            <include name="${elocator-bmj}.pdf"/>
+                                        </fileset>
+                                        <condition property="pdf-present">
+                                            <resourcecount refid="pdf-found" when="greater" count="0"/>
+                                        </condition>
+                                    </then>
+                                </if>
+                                <if>
+                                    <isset property="pdf-present"/>
+                                    <then>
+                                        <pathconvert refid="pdf-found" property="pdf-in-folder"/>
+                                        <echo message="----------This was the PDF found in the folder: ${pdf-in-folder}"/>
+                                        <copy file="${temp-hwexpress}\${elocator-bmj}\pdf\${elocator-bmj}.pdf" 
+                                            todir="${temp-instance}\pmc\${elocator-bmj-vol-pmc}\pdf"/>
+                                    </then>
+                                </if>
+                                
+                                <if>
+                                    <available file="${temp-hwexpress}/${article-name-no-ext}-ds" type="dir"/>
+                                    <then>
+                                        <loadfile property="supps-in-folder" 
+                                            srcfile="${temp-uploadtobmjcms}\data-supps\supps-in-folder.txt" failonerror="false"/>
+                                        <delete file="${temp-uploadtobmjcms}\data-supps\supps-in-folder.txt"/>
+                                        <sortlist property="supps-folder-text" value="${supps-in-folder}" delimiter=","/>
+                                        <echo message="---------- These are the supplementary files found in the folder: ${supps-folder-text}"/>
+                                        
+                                        <echo message="---------- This is an individual temp hwx data supps folder: ${temp-hwexpress}/${article-name-no-ext}-ds"/>
+                                        
+                                        <unzip src="${temp-hwexpress}/${article-name-no-ext}-ds/${elocator-bmj}.zip" 
+                                            dest="${temp-instance}/pmc/${elocator-bmj-vol-pmc}/data-supps"/>
+                                        <delete file="${temp-instance}/pmc/${elocator-bmj-vol-pmc}/data-supps/manifest.xml"/>
+                                    </then>
+                                </if>
+                                
+                                <if>
+                                    <available file="${temp-hwexpress}/${article-name-no-ext}/graphics" type="dir"/>
+                                    <then>
+                                        <loadfile property="graphics-in-folder" 
+                                            srcfile="${temp-uploadtobmjcms}\graphics\graphics-in-folder.txt" failonerror="false"/>
+                                        <delete file="${temp-uploadtobmjcms}\graphics\graphics-in-folder.txt"/>
+                                        <sortlist property="graphics-folder-text" value="${graphics-in-folder}" delimiter=","/>
+                                        <echo message="---------- These are the graphics found in the folder: ${graphics-folder-text}"/>
+                                        
+                                        <echo message="---------- This is an individual temp hwx graphics folder: ${temp-hwexpress}/${article-name-no-ext}/graphics"/>
+                                        
+                                        <copy todir="${temp-instance}/pmc/${elocator-bmj-vol-pmc}/graphics">
+                                            <fileset dir="${temp-hwexpress}/${article-name-no-ext}/graphics"/>
+                                        </copy>
+                                    </then>
+                                </if>
+                                
+                                <!-- Add file extensions for graphics and supplementary files based upon files found in folder -->
+                                
+                                <echo message="---------- Is embargo set for this article? ${embargo.set}"/>
+                                <echo message="---------- This is the embargo date-string: ${valid-date-string}"/>
+                                <echo message="---------- This is the embargo time string: ${embargo.time-string}"/>
+                                
+                                <xslt in="${temp-uploadtobmjcms}\${location-article}" 
+                                    out="${temp-instance}\pmc\${elocator-bmj-vol-pmc}\jats-xml\${elocator-bmj}.xml"
+                                    style="${xslt}\pmc-tweaks.xsl" processor="trax" force="true" extension=".xml">
+                                    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                                    <param name="elocator-bmj" expression="${elocator-bmj}"/>
+                                    <param name="volume-number" expression="${volume.number}"/>
+                                    <param name="embargo-set" expression="${embargo.set}"/>
+                                    <param name="embargo-date-string" expression="${valid-date-string}"/>
+                                    <param name="embargo-time-string" expression="${embargo.time-string}"/>
+                                    <param name="graphic-files-in-folder" expression="${graphics-folder-text}"/>
+                                    <param name="ppr" expression="${ppr}"/>
+                                    <param name="supp-files-in-folder" expression="${supps-folder-text}"/>
+                                    <param name="valid-date-string" expression="${valid-date-string}"/>
+                                </xslt>
+                                
+                                <!-- XML file and graphics zipping -->
+                                <zip destfile="${uploadtoPMC}\${elocator-bmj-vol-pmc}.zip">
+                                    <fileset dir="${temp-instance}\pmc\${elocator-bmj-vol-pmc}">
+                                        <include name="**\*.*"/>
+                                    </fileset>
+                                </zip>
+                            </then>
+                            <else>
+                                <echo message="-----------------------------------------------"/>
+                                <echo message=" THIS ARTICLE (${elocator}) IS NOT OPEN ACCESS "/>
+                                <echo message="-----------------------------------------------"/>
+                                <echo message="        WILL NOT SEND TO PUBMED CENTRAL        "/>
+                                <echo message="-----------------------------------------------"/>
+                            </else>
+                        </if>
+                        
+                    </sequential>
+                </for>
+            </then>
+        </if>
+        
+    </target>
+    
+</project>

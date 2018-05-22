@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="scheduled-ftp-to-pmc">
+    
+    <description>
+        
+        Host: ftp.novatechset.com
+        User: BMJ
+        
+    </description>
+    
+    <target name="scheduled-ftp-to-pmc" depends="ftp-pmc"/>
+    
+    <!--Directories for testing process-->
+    
+    <tstamp>
+        <format property="PUB-YEAR" pattern="yyyy"/>
+    </tstamp>
+    
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    
+    <property name="log-info" value="${log}/scheduled-ftp-pmc-${start.DSTAMP}-info.txt"/>
+    
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    
+    <target name="ftp-pmc">
+        
+        <echo message="---------- This is the upload folder for PMC: ${uploadtoPMC}"/>
+        
+        <fileset dir="${uploadtoPMC}" id="article-zips">
+            <include name="bmj_*.zip"/>
+        </fileset>
+        
+        <pathconvert refid="article-zips" property="article-zip-list"/>
+        <echo message="---------- This is the list of article ZIPs: ${article-zip-list}"/>
+        
+        <!-- Check for the presence of article folder and set 'article-folder-present' condition if true -->
+        <condition property="article-zip-present" else="false">
+            <length string="${article-zip-list}" when="gt" length="0"/>
+        </condition>
+        <echo message="---------- Is an article ZIP present? ${article-zip-present}"/>
+        
+        
+        <if>
+            <isset property="article-zip-present"/>
+            <then>
+                
+                <!-- Transfer article packages to Highwire FTP -->
+                
+                <for list="${article-zip-list}" param="item" delimiter=";">
+                    <sequential>
+                        
+                        <var name="item-bmj-elocator" unset="true"/>
+                        
+                        <echo message="---------- Sending XML files to FTP"/>
+                        <echo message="This is the path of a single item: @{item}"/>
+                        
+                        <propertyregex 
+                            property="item-bmj-elocator" input="@{item}" 
+                            regexp=".*?(.+)(uploadtoPMC)(\\)(.+)" 
+                            replace="\4" 
+                            global="true"/>
+                        
+                        <echo message="This is the name of a single item: ${item-bmj-elocator}"/>
+                        
+                        <ftp 
+                            server="${ftp-pmc-server}"
+                            userid="${ftp-pmc-user}"
+                            password="${ftp-pmc-pass}"
+                            remotedir="${ftp-pmc-folder}">
+                            <fileset dir="${uploadtoPMC}">
+                                <include name="${item-bmj-elocator}"/>
+                            </fileset>
+                        </ftp>
+                        
+                    </sequential>
+                </for>
+                
+                <for list="${article-zip-list}" param="item" delimiter=";">
+                    <sequential>
+                        <delete verbose="true" includeemptydirs="true">
+                            <fileset file="@{item}"/>
+                        </delete>
+                    </sequential>
+                </for>
+                
+                
+            </then>
+            
+        </if>
+        
+    </target>
+    
+    
+    
+</project>

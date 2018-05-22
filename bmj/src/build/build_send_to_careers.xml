@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="main" name="Send_to_Careers">
+    <description>
+        1. User right-clicks on article folder in the content store and selects the Send_to_Careers shortcut. 
+        This activates the Send_to_Careers.bat which runs this "build_send_to_careers.xml" file.
+        2. Look for necessary files (graphics and NLM XML) in the selected folder then creates temporary working area for these files.
+        3. Tweak XML with XSLT to prepare files for upload.
+        4. Convert graphics for careers with ImageMagick then move to converted folder.
+        5. Collect files and send to SCP.
+        6. Collect files and send to CMS.
+    </description>
+    
+    <target name="main" depends="process-xml"/>
+    
+    <!--Directories for testing process-->
+    <mkdir dir="${log}"/>
+    
+    <tstamp>
+        <format property="PUB-YEAR" pattern="yyyy"/>
+    </tstamp>
+    
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    
+    <mkdir dir="${log}"/>
+    
+    <property name="log-info" value="${log}/send-to-careers-${start.DSTAMP}-info.txt"/>
+    
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <property name="temp-instance" value="${temp}/${launchedby}_${time-stamp}"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    <taskdef name="schematron" classname="com.schematron.ant.SchematronTask" classpath="lib/ant-schematron.jar"/>
+    <sortlist property="sorted-files" value="${inputdirlist}" delimiter=","/>
+    <echo message="---------- This is the source folder: ${sorted-files}"/>
+    
+    <target name="process-xml">
+        <for list="${sorted-files}" param="dir">
+            <sequential>
+                <var name="source-dir" unset="true"/>
+                <var name="source-article" unset="true"/>
+                <var name="source-file-xml" unset="true"/>
+                <var name="graphics-xml" unset="true"/>
+                <var name="graphics-xml-sorted" unset="true"/>
+                <var name="nlmxml-present" unset="true"/>
+                <var name="graphics-present" unset="true"/>
+                <!-- Source files and directories -->
+                <propertyregex property="source-dir" input="@{dir}" regexp="^.*?([^,]+)$" replace="\1"/>
+                <propertyregex property="source-article" input="@{dir}" regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" replace="\4"/>
+                <echo message="----------This is the source directory: ${source-dir}"/>
+                <echo message="----------This is the source article: ${source-article}"/>
+                <property name="source-file-xml" value="${source-dir}/nlmxml/${source-article}.xml"/>
+                <!-- Check for any fails in the QA HTML -->
+                <xpath file="${source-dir}/qa/${source-article}-QA-report.html" expression="//td/text()[contains(.,'Fail')]" outputproperty="fail" />
+                <echo message="---------- Has this article failed QA? ${fail}"/>
+                <if>
+                    <contains string="${fail}" substring="Fail"/>
+                    <then>
+                        <echo message=""/>
+                        <echo message=""/>
+                        <echo message="===================================================="/>
+                        <echo message="===================================================="/>
+                        <echo message=""/>
+                        <echo message="THIS ARTICLE (${source-article}) HAS NOT PASSED QA!!"/>
+                        <echo message=""/>
+                        <echo message="CHECK QA REPORT AND CORRECT ALL REPORTED ERRORS FOR THIS ARTICLE!!"/>
+                        <echo message=""/>
+                        <echo message="===================================================="/>
+                        <echo message="===================================================="/>
+                        <echo message=""/>
+                        <echo message=""/>
+                        <exec executable="cmd" spawn="true" >
+                            <arg value="/c"/>
+                            <arg value="${source-dir}/qa/${source-article}-QA-report.html"/>
+                        </exec>
+                        <fail/>
+                    </then>
+                </if>
+                <runtarget target="process-files"/>
+            </sequential>
+        </for>
+    </target>
+    
+    <target name="process-files">
+        
+        <xpath file="${source-file-xml}" expression="//elocation-id/text()" outputproperty="elocator"/>
+        <echo message="----------This is the elocation ID: ${elocator}"/>
+        
+        
+        <xpath file="${source-file-xml}" expression="//graphic/@xlink:href" outputproperty="graphics-xml">
+        <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+        </xpath>
+        <sortlist property="graphics-xml-sorted" value="${graphics-xml}" delimiter=","/>
+        <echo message="----------This is the list of sorted graphics ${graphics-xml-sorted}"/>
+        <property name="graphics-store" value="F:/Editorial/_content_processing/graphics"/>
+        
+        <!-- XML collector. If an XML is present in the folder, this runs and copies the NLM XML to the temp processing folder. -->
+        <condition property="nlmxml-present">
+            <length file="${source-file-xml}" when="gt" length="0"/>
+        </condition>
+        <echo message="----------This is the NLM XML: ${source-file-xml}"/>
+        <echo message="----------Is the NML XML present in the folder? ${nlmxml-present}"/>
+        <if>
+            <isset property="nlmxml-present"/>
+            <then>
+                <mkdir dir="${temp-instance}/bmj/careers"/>
+                <copy file="${source-file-xml}" tofile="${temp-instance}/source-xml/bmj.${elocator}.xml"/>
+                <xslt 
+                    in="${temp-instance}/source-xml/bmj.${elocator}.xml"
+                    out="${temp-instance}/bmj/careers/bmj.${elocator}.xml"
+                    style="${xslt}/send-to-careers.xsl" 
+                    processor="trax">
+                </xslt>
+                
+            </then>
+        </if>
+        <!-- Graphic collector. If graphics are found in the XML, this runs and copies any corresponding graphics from the graphics store. -->
+        <condition property="graphics-present">
+            <length string="${graphics-xml-sorted}" when="gt" length="0"/>
+        </condition>
+        <echo message="----------These are the graphics found in the XML ${graphics-xml}"/>
+        <echo message="----------Are the graphics present in the XML? ${graphics-present}"/>
+        <if>
+            <isset property="graphics-present"/>
+            <then>
+                <for list="${graphics-xml-sorted}" param="graphic-file-xml">
+                    <sequential>
+                        <var name="graphic-in-folder" unset="true"/>
+                        <var name="graphic-file-folder" unset="true"/>
+                        <var name="graphic-file-with-suffix" unset="true"/>
+                        <echo message="----------This is the location of the graphics for the article ${source-dir}/graphics"/>
+                        <echo message="----------This graphic file was found in the XML: @{graphic-file-xml}"/>
+                        <fileset dir="${source-dir}/graphics" id="graphic-found">
+                            <include name="**/@{graphic-file-xml}.*"/>
+                        </fileset>
+                        <pathconvert refid="graphic-found" property="graphic-in-folder"/>
+                        <echo message="----------This was the graphic found in the folder: ${graphic-in-folder}"/>
+                        <copy file="${graphic-in-folder}" todir="${temp-instance}/source-graphics" />
+                        
+                        <propertyregex property="graphic-file-with-suffix" input="${graphic-in-folder}" 
+                            regexp=".*?(.+)(\\)(.+)(\.)(.+)(\.)(.+)" replace="\3\4\5\6\7" global="true"/>
+                        <echo message="----------This is the graphic file with suffix: ${graphic-file-with-suffix}"/>
+                        <mkdir dir="${temp-instance}/graphics"/>
+                        
+                        <!-- ImageMagick -->
+                        <echo message="----------Coverting graphics in ${temp-instance}/source-graphics"/>
+                        <exec executable="magick" failonerror="false">
+                            <arg value="-density"/>
+                            <arg value="300"/>
+                            <arg value="${temp-instance}/source-graphics/${graphic-file-with-suffix}"/>
+                            <arg value="-layers"/>
+                            <arg value="flatten"/>
+                            <arg value="${temp-instance}/graphics/@{graphic-file-xml}.jpg"/>
+                        </exec>
+                    </sequential>
+                </for>
+            </then>
+        </if>
+        <runtarget target="cms"/>
+    </target>
+    
+    <!-- Send to UploadtoBMJCMS folder to be picked up by scheduled uploader -->
+    <target name="cms">
+        
+        <copy todir="${uploadtoBMJCMS}/bmj/careers">
+            <fileset dir="${temp-instance}/bmj/careers">
+                <include name="*.xml"/>
+            </fileset>
+        </copy>
+        <if>
+            <isset property="graphics-present"/>
+            <then>
+                 <copy todir="${uploadtoBMJCMS}/graphics">
+                     <fileset dir="${temp-instance}/graphics">
+                         <include name="*.jpg"/>
+                     </fileset>
+                 </copy>
+            </then>
+        </if>
+        
+        <copy todir="${uploadtoCareers}/bmj/careers">
+            <fileset dir="${temp-instance}/bmj/careers">
+                <include name="*.xml"/>
+            </fileset>
+        </copy>
+        <if>
+            <isset property="graphics-present"/>
+            <then>
+                 <copy todir="${uploadtoCareers}/graphics">
+                     <fileset dir="${temp-instance}/graphics">
+                         <include name="*.jpg"/>
+                     </fileset>
+                 </copy>
+            </then>
+        </if>
+        
+    </target>
+    
+</project>

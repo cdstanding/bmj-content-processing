@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project 
+    basedir="."
+    name="build_makePDF"
+    default="makePDF">
+    
+    <description>
+            This is a module that converts NLM XML into XSLFO XML using the following XSLT
+            
+            \\bmjprod1\Users\la_bmjprod\dev\bmj\xslfo\article-fo-1-0.xsl
+            
+            then into PDF using RenderX XEP using
+            
+            \\bmjprod1\Users\la_bmjprod\dev\bmj\Render\XEP\xep.bat
+            
+            This module relies upon graphics being converted into JPG format in
+            
+            '\\bmjprod1\Users\la_bmjprod\dev\bmj\build_file_check_and_collect'
+            
+            The graphic conversion only occurs when the 'pdf-in-process' property 
+            is set in that module.
+            
+            The PDF is output to a 'pdf-preview' sub folder in the article folder.
+            
+            Properties for this build are in
+            
+            \\bmjprod1\Users\la_bmjprod\dev\bmj\build_makePDF.properties
+            
+            
+    </description>
+    
+    <target
+        name="makePDF"
+        depends="create-pdf"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    <taskdef name="schematron" classname="com.schematron.ant.SchematronTask" classpath="lib/ant-schematron.jar"/>
+    
+    
+    <target name="create-pdf">
+        
+        <echo message="----------"/>
+        <echo message="---------- Transforming XML to FO XML..."/>
+        <echo message="----------"/>
+        <echo message="---------- This is the article folder: ${article-folder}"/>
+        
+        <tstamp>
+            <format property="date-today" pattern="yyyy/MM/dd"/>
+        </tstamp>
+        
+        <!-- Property to supress published date for PDF preview. Passed into 'article-fo-1-0.xsl' and referred to in 'setup-page-layout-1-0.xsl' -->
+        <property name="pdfPreview" value="pdfPreview"/>
+        
+        <xslt 
+            in="${article-folder}/jats-xml/${article-name}.xml"
+            out="${temp-instance}/${article-name}/pdf-preview/${article-name}-FO.xml"
+            style="${xslfo}/jats/article-fo-1-0.xsl"
+            processor="trax"
+            force="true"
+            extension=".xml">
+            <param name="logo-location-path" expression="${logos}"/>
+            <param name="batchPubDate" expression="${date-today}"/>
+            <param name="pdfPreview" expression="pdfPreview"/>
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+        </xslt>
+        
+        <echo message="----------"/>
+        <echo message="---------- Converting FO XML into PDF..."/>
+        <echo message="----------"/>
+        <exec executable="${xep}/xep.bat">
+            <arg value="${temp-instance}/${article-name}/pdf-preview/${article-name}-FO.xml"/>
+        </exec>
+        
+        <move
+            file="${temp-instance}/${article-name}/pdf-preview/${article-name}-FO.pdf"
+            tofile="${article-folder}/pdf-preview/${article-name}-${time-stamp}-preview.pdf"/>
+        
+    </target>
+    
+    
+    
+</project>

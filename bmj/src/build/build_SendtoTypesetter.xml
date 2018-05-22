@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project name="SendtoTypesetter" basedir="." default="batchftptoTypesetter">
+    <description> Script to work as below. User selects folder(s) for an article in the content
+          store, right clicks and selects 'SendtoTypesetter' shortcut This launches a batch file
+          'sendtoTypesetter.bat' which calls this script (SendtoTypesetter.xml) and passes the names of the selected folders.
+          This  script then does the following for each article:
+          Check that any graphics called exist in  the stated libraries, if not then alert user and stop
+          (The file ./info/{article-name}-meta.xml is the property file that will have this information)
+          Copies graphics to a temp area, copies xml to temp area and rename to doi-suffix
+          Zips graphics and xml into doi-suffix named zip file
+          Ftps file to tech set
+           </description>
+    <!--SETTING UP THE ENVIRONMENT-->
+    <!-- set global properties for this build -->
+    <property name="graphics.store" value=""
+        description="path location for the graphics for the article"/>
+    <property name="inputdirlist" location=""
+        description="list of input content-store article directories to the process usualy just the one"/>
+    <property name="ftpsite" value="" description="target ftp site"/>
+    <property name="ftpdir.zip" value="" description="remote directory on ftp to place zip files"/>
+    <property name="ftpuser" value="" description="ftp user name"/>
+    <property name="ftppw" value="" description="ftp password"/>
+    <property name="launchedby" value="" description="name of calling batch file"/>
+    <property name="antlib.dir"
+        value="C:${file.separator}serverprograms${file.separator}ant${file.separator}lib"/>
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath>
+            <pathelement location="${antlib.dir}/ant-contrib-1.0b3.jar"/>
+        </classpath>
+    </taskdef>
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask"
+        classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    <!-- define saxon macro to call for any XSLT work required-->
+    <macrodef name="saxonnofail">
+        <attribute name="srcfile"/>
+        <attribute name="outfile"/>
+        <attribute name="stylesheet"/>
+        <sequential>
+            <java classpath="${antlib.dir}" jar="${antlib.dir}/saxon8.jar" fork="true"
+                failonerror="false">
+                <arg value="-novw"/>
+                <arg value="-o"/>
+                <arg value="@{outfile}"/>
+                <arg value="@{srcfile}"/>
+                <arg value="@{stylesheet}"/>
+            </java>
+        </sequential>
+    </macrodef>
+    <!--TASK DEFINITIONS-->
+    <!--     Various time stamps set up-->
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="temp.stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    <!--   Create a sorted list of input directories-->
+    <sortlist property="sorted.files" value="${inputdirlist}" delimiter=","/>
+    <!--   Get the first item in this batch to give a name for the batch log-->
+    <propertyregex property="batch.first" input="${sorted.files}"
+        regexp="^.*?([^\\]+)\\([^\\]+)(,.*|$)" replace="\1_\2"/>
+    <!--   Set up a server level lopg for this set of process-->
+    <property name="Log" value="${log}/${launchedby}-${temp.stamp}_${batch.first}.txt"/>
+    <target name="batchftptoTypesetter">
+        <!--         Ask user if they are sure they want to continue-->
+        <record name="${Log}" action="start" append="true" loglevel="verbose"/>
+        <echo message="***********************"/>
+        <echo message="${launchedby}"/>
+        <echo message="***********************"/>
+        <echo message="&#x0A;Start: ${start.DSTAMP} at ${start.TSTAMP}"/>
+        <echo message="&#x0A;You have selected:&#x0A;"/>
+        <for list="${sorted.files}" param="dir">
+            <sequential>
+                <var name="dir.userview" unset="true"/>
+                <propertyregex property="dir.userview" input="@{dir}"
+                    regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" replace="\4 (\3, \1)"/>
+                <echo message="    ${dir.userview}"/>
+            </sequential>
+        </for>
+        <echo message="&#x0A;For processing ${launchedby}&#x0A;"/>
+        <input message="Do you want to continue?  (y/n):" addproperty="start.confirm">
+            <handler type="default"/>
+        </input>
+        <waitfor>
+            <isset property="start.confirm"/>
+        </waitfor>
+        <!--          if user confirms start processing the batch-->
+        <switch value="${start.confirm}">
+            <case value="y">
+                <runtarget target="processing-batch"/>
+            </case>
+            <!--          if user says no cancel the batch-->
+            <case value="n">
+                <echo message="User cancels, cleaning up"/>
+            </case>
+        </switch>
+        <runtarget target="clean-up"/>
+        <tstamp prefix="stop"/>
+        <echo message="PROCESS STARTED ${start.DSTAMP} at ${start.TSTAMP}"/>
+        <echo message="PROCESS FINISHED ${stop.DSTAMP} at ${stop.TSTAMP}"/>
+    </target>
+    <target name="processing-batch">
+        <!--          A batch here is a selection of input directories (i.e. articles)..
+               Typically a user only selects one dir is at a time, but this listing allows multiple articles to be sent at the same time-->
+        <echo message="Will work on ${inputdirlist}"/>
+        <foreach target="process-article" param="dir" list="${inputdirlist}"/>
+    </target>
+    <target name="process-article">
+        <!-- This is where article XML and graphics are collected, added to a zip and  sent to the typestter-->
+        <!--Start the local log for the process-->
+        <tstamp prefix="local.start"/>
+        <property name="LocalLog" value="${dir}/ToTypesetter-${start.DSTAMP}.txt"/>
+        <record name="${LocalLog}" action="start" append="true"/>
+        <echo message="Start process for ${dir}  ${local.start.DSTAMP} at ${local.start.TSTAMP}"/>
+        <!--Read the metatada-->
+        <basename property="thisfile" file="${dir}"/>
+        <xpath file="${dir}${file.separator}info${file.separator}${thisfile}-meta.xml"
+            expression="//article/art-doi/text()" outputproperty="art-doi"/>
+        <propertyregex input="${art-doi}" regexp=".*(\/)(.+)" replace="\2"
+            property="article.art-doi-tail"/>
+        <echo message="Reading metadata properties from ${dir} for file ${thisfile}"/>
+        <xmlproperty file="${dir}\info\${thisfile}-meta.xml"/>
+        <!--          remove any pre-existing zips-->
+        <delete file="${dir}\${article.art-doi-tail}.zip" failonerror="false"/>
+        <echo message="Adding ${dir}\${xml-folder}\${thisfile}.xml to ${dir}\${thisfile}.zip"/>
+        <zip destfile="${dir}\${article.art-doi-tail}.zip" filesonly="true" whenempty="skip"
+            update="true">
+            <zipfileset dir="${dir}${file.separator}${xml-folder}" includes="${thisfile}.xml"
+                fullpath="${article.art-doi-tail}.xml"/>
+        </zip>
+        <!--If there are graphics calls in the metadata file then get them and add them to the zip-->
+        <if>
+            <isset property="article.graphics-in-xml.graphic"/>
+            <then>
+                <runtarget target="check-graphics"/>
+            </then>
+        </if>
+        <copy file="${dir}\${article.art-doi-tail}.zip" todir="${upload-to-typesetter}"/>
+    </target>
+    <target name="check-graphics" description="Check for graphics">
+        <!-- Remove previous missing graphics list-->
+        <echo message="&#x0A;Deleting old missing-graphics list if it existed&#x0A;"/>
+        <delete quiet="true">
+            <fileset dir="${dir}" includes="missing-graphics.txt"/>
+        </delete>
+        <echo message="Checking for graphics. Will look in ${dir}\graphics "/>
+        <!-- Get the graphics if you can -->
+        <foreach target="get-graphic" param="thisgraphic" list="${article.graphics-in-xml.graphic}"
+            inheritall="true" inheritrefs="true"/>
+        <!-- If the graphics are missing then warn user and fail the build  -->
+        <if>
+            <available file="${dir}\missing-graphics.txt"/>
+            <then>
+                <loadfile property="missing-graphics" srcfile="${dir}\missing-graphics.txt"
+                    failonerror="false"/>
+                <echo message="&#x0A;******************************&#x0A;"/>
+                <echo message="WARNING CANNOT FIND THESE GRAPHICS:&#x0A;&#x0A;${missing-graphics}"/>
+                <echo message="&#x0A;******************************&#x0A;"/>
+                <fail/>
+            </then>
+        </if>
+        <echo message="Graphics done"/>
+    </target>
+    <target name="get-graphic">
+        <echo message="Trying to find ${thisgraphic}"/>
+        <fileset dir="${dir}\graphics" id="graphics.central">
+            <include name="${thisgraphic}.*"/>
+            <include name="${thisgraphic}"/>
+        </fileset>
+        <pathconvert property="in.central" refid="graphics.central"/>
+        <echo file="${LocalLog}" append="true" message="Looking for graphic ${in.central}&#x0A;"/>
+        <if>
+            <not>
+                <equals arg1="${in.central}" arg2=""/>
+            </not>
+            <then>
+                <echo file="${LocalLog}" append="true" message="Found ${in.central}&#x0A; "/>
+                <echo message="Adding ${in.central} to ${dir}\${article.art-doi-tail}.zip"/>
+                <zip destfile="${dir}/${article.art-doi-tail}.zip" filesonly="true" whenempty="skip"
+                    update="true">
+                    <zipfileset dir="${dir}\graphics" includes="${thisgraphic}"
+                        fullpath="${thisgraphic}"/>
+                    <zipfileset dir="${dir}\graphics" includes="${thisgraphic}.*"
+                        fullpath="${thisgraphic}"/>
+                </zip>
+            </then>
+            <else>
+                <echo file="${LocalLog}" append="true"
+                    message="Could not find ${thisgraphic} at ${graphics.store}/${article.journal}"/>
+                <echo file="${dir}/missing-graphics.txt" append="true"
+                    message="${thisgraphic}&#x0D;&#x0A;"/>
+            </else>
+        </if>
+    </target>
+    <target name="clean-up">
+    </target>
+</project>
