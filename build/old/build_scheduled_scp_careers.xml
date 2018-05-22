@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="scp-to-careers">
+    
+    <description/>
+    
+    <target name="scp-to-careers" depends="scp-and-update-site"/>
+    
+    <!--Directories for testing process-->
+    
+    <tstamp>
+        <format property="PUB-YEAR" pattern="yyyy"/>
+    </tstamp>
+    
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    
+    <property name="log-info" value="${log}/scheduled-scp-careers-${start.DSTAMP}-info.txt"/>
+    
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    
+    <target name="scp-and-update-site">
+        <fileset dir="${uploadtoCareers}/bmj/careers" id="xml-files">
+            <include name="*.xml"/>
+        </fileset>
+        <fileset dir="${uploadtoCareers}/graphics" id="graphic-files">
+            <include name="*.jpg"/>
+        </fileset>
+        
+        <pathconvert refid="xml-files" property="xml-list"/>
+        <echo message="---------- This is the list of xml files: ${xml-list}"/>
+        <pathconvert refid="graphic-files" property="graphic-list"/>
+        <echo message="---------- This is the list of graphic files: ${graphic-list}"/>
+        
+        <condition property="xml-present">
+            <length string="${xml-list}" when="gt" length="0"/>
+        </condition>
+        <echo message="---------- Is an xml present? ${xml-present}"/>
+        
+        <condition property="graphics-present">
+            <length string="${graphic-list}" when="gt" length="0"/>
+        </condition>
+        <echo message="---------- Are any graphics present? ${graphics-present}"/>
+        
+        <echo message="---------- This is server one: ${scp.careers.live.server}"/>
+        <echo message="---------- This is server two: ${scp.careers.live.server.two}"/>
+        <echo message="---------- This is server three: ${scp.careers.live.server.three}"/>
+        
+         <if>
+            <isset property="graphics-present"/>
+            <then>
+                <for list="${graphic-list}" param="graphic" delimiter=";">
+                    <sequential>
+                        <echo message="---------- This is a graphic file location: @{graphic}"/>
+                         <scp 
+                             todir="${scp.careers.live.user}:${scp.careers.live.pass}@${scp.careers.live.server}:${scp.careers.live.remotedir.images}"
+                             trust="true" verbose="true" sftp="true">
+                             <fileset file="@{graphic}"/>
+                         </scp>
+                        
+                        <if>
+                            <isset property="scp.careers.live.server.two"/>
+                            <then>
+                                <scp 
+                                    todir="${scp.careers.live.user}:${scp.careers.live.pass}@${scp.careers.live.server.two}:${scp.careers.live.web.images}"
+                                    trust="true" verbose="true" sftp="true">
+                                    <fileset file="@{graphic}"/>
+                                </scp>
+                            </then>
+                        </if>
+                        
+                        <delete file="@{graphic}"/>
+                    </sequential>
+                </for>
+            </then>
+            <else>
+                <echo message="---------- No graphics present. Will not attempt to copy graphics."/>
+            </else>
+        </if>
+        
+        <if>
+            <isset property="xml-present"/>
+            <then>
+                <for list="${xml-list}" param="xml" delimiter=";">
+                    <sequential>
+                        <echo message="---------- This is an xml file location: @{xml}"/>
+                        <scp
+                            todir="${scp.careers.live.user}:${scp.careers.live.pass}@${scp.careers.live.server}:${scp.careers.live.remotedir.xml}"
+                            trust="true" verbose="true" sftp="true">
+                            <fileset file="@{xml}"/>
+                        </scp>
+                        <delete file="@{xml}"/>
+                        <!-- Trigger careers cronjob in order to pick the new articles up -->
+                        <trycatch property="trysshexec">
+                            <try>
+                                <parallel threadCount="1" timeout="300000">
+                                    <sequential>
+                                        <sshexec host="${scp.careers.live.server}"
+                                            username="${scp.careers.live.user}"
+                                            password="${scp.careers.live.pass}"
+                                            command="${scp.careers.live.scriptupdate}"
+                                            trust="true"
+                                            failonerror="true"/>
+                                    </sequential>
+                                </parallel>
+                            </try>
+                            <catch>
+                                <echo message="sshexec problem: ${trysshexec}: send email"/>
+                                <mail 
+                                    mailhost="smtp.internal.bmjgroup.com"
+                                    mailport="25"
+                                    subject="BMJCMS-Production-error: ${docatopub-name}: ${trysshexec}">
+                                    <to address="bmj-cms-alerts@list.bmj.com"/>
+                                    <from address="bmj-cms-alerts@list.bmj.com"/>
+                                    <message>Publication ${docatopub-name} did not complete. SSHExec Error with:&#10; ${trysshexec}.</message>
+                                </mail>
+                            </catch>
+                            <finally>
+                                <echo message="SSHExec attempt resulted in with ${trysshexec}. Carrying on..."/>
+                            </finally>
+                        </trycatch>
+                        
+                        
+                    </sequential>
+                </for>
+            </then>
+            <else>
+                <echo message="---------- No XML present. Will not attempt to look for xml files."/>
+            </else>
+        </if>
+        
+        
+        
+    </target>
+    
+</project>

@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="scheduled-archive">
+    
+    <description>Simple move script for archiving files</description>
+    
+    <target name="scheduled-archive" depends="archive-to-data-drive"/>
+    
+    <!--Directories for testing process-->
+    
+    <tstamp>
+        <format property="PUB-YEAR" pattern="yyyy"/>
+    </tstamp>
+    
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    
+    <property name="log-info" value="${log}/scheduled-archive-${start.DSTAMP}-info.txt"/>
+    
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <target name="archive-to-data-drive">
+        
+        <move todir="${archive-destination}" verbose="true">
+            <fileset dir="${archive-source}">
+                <include name="**/*"/>
+            </fileset>
+        </move>
+        
+    </target>
+    
+    
+    
+</project>

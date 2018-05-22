@@ -1,0 +1,1049 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<project default="main" name="article-processing">
+    
+<description>
+    
+</description>
+    
+    <target name="main" depends="loop"/>
+    
+    <!--Link to extension ANT tasks-->
+    <property name="ant-lib" value="../../src/resources/lib"/>
+    <!--<taskdef resource="net/sf/antcontrib/antlib.xml"/>-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="${ant-lib}/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="schematron" classname="com.schematron.ant.SchematronTask" classpath="${ant-lib}/ant-schematron.jar"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="${ant-lib}/andariel-1.2.3.jar"/>
+    <taskdef name="http" classname="org.missinglink.ant.task.http.HttpClientTask" classpath="${ant-lib}/ml-ant-http-1.1.3.jar"/>
+    
+    <!--Start a time-stamped log. This will append a log with the same date and will 
+        create a new log when the date changes to a new day -->
+    <tstamp prefix="start"/>
+    <mkdir dir="${log}"/>
+    <property name="log-info" value="${log}/xml-processlog-${start.DSTAMP}-info.txt"/>
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START DATE ${start.DSTAMP}"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <!-- Process individual files sequentially then run other targets -->
+    <target name="loop">
+        
+        <!-- Collect files from xml-in folder -->
+        <fileset dir="${in-dir}" casesensitive="no" id="extyles-xml">
+            <include name="*.xml"/>
+        </fileset>
+        <pathconvert refid="extyles-xml" property="article-list"/>
+        
+        <!--Properties for the different filepaths. Will default to these local directories if build-process-xml.properties isn't available-->
+        <echo message="----------"/>
+        <echo message="---------- This is the 'in' directory: ${in-dir}"/>
+        <echo message="----------"/>
+        <echo message="---------- This is the list of xml files found ${article-list}"/>
+        <echo message="----------"/>
+        <echo message="---------- This is the user that exported the file ${user}"/>
+        <echo message="----------"/>
+        
+        <!-- Check for the presence of files and set 'files-present' condition if true -->
+        <condition property="files-present" else="false">
+            <length string="${article-list}" when="gt" length="0"/>
+        </condition>
+        <echo message="---------- Is an article folder present? ${files-present}"/>
+        
+        <if>
+            <equals arg1="${files-present}" arg2="true"/>
+            <then>
+                <for list="${article-list}" param="article" delimiter=";">
+                    <sequential>
+                        
+                        <!-- Reset all variables from each target here, 
+                            otherwise variables won't be properly passed in from each article processed -->
+                        <var name="art-id" unset="true"/>
+                        <var name="art-doi" unset="true"/>
+                        <var name="art-section" unset="true"/>
+                        <var name="art-section-alt" unset="true"/>
+                        <var name="article-title" unset="true"/>
+                        <var name="art-type" unset="true"/>
+                        <var name="content-store-article" unset="true"/>
+                        <var name="current-export" unset="true"/>
+                        <var name="elocator" unset="true"/>
+                        <var name="extyles-invalid" unset="true"/>
+                        <var name="extyles-warning" unset="true"/>
+                        <var name="first-author-given-name" unset="true"/>
+                        <var name="first-author-surname" unset="true"/>
+                        <var name="graphic-file-folder" unset="true"/>
+                        <var name="graphics-folder-available" unset="true"/>
+                        <var name="graphics-found-file" unset="true"/>
+                        <var name="graphics-found-filepath" unset="true"/>
+                        <var name="graphics-found-folder" unset="true"/>
+                        <var name="graphics-found-info-folder" unset="true"/>
+                        <var name="graphics-info-folder-sorted" unset="true"/>
+                        <var name="graphics-found-info-xml" unset="true"/>
+                        <var name="graphics-info-xml-sorted" unset="true"/>
+                        <var name="graphics-present-xml" unset="true"/>
+                        <var name="graphics-xml" unset="true"/>
+                        <var name="graphics-xml-sorted" unset="true"/>
+                        <var name="instance" unset="true"/>
+                        <var name="journal-id" unset="true"/>
+                        <var name="journal-id-meta" unset="true"/>
+                        <var name="journal-nlm" unset="true"/>
+                        <var name="resolved-base-dir" unset="true"/>
+                        <var name="resolved-temp-dir" unset="true"/>
+                        <var name="series-title" unset="true"/>
+                        <var name="source-filename" unset="true"/>
+                        <var name="source-filename-no-ext" unset="true"/>
+                        <var name="supp-file-xml" unset="true"/>
+                        <var name="supp-files-xml" unset="true"/>
+                        <var name="supp-files-xml-sorted" unset="true"/>
+                        <var name="supps-present-folder" unset="true"/>
+                        <var name="supps-present-xml" unset="true"/>
+                        <var name="supps-text" unset="true"/>
+                        <var name="supps-text-file" unset="true"/>
+                        <var name="supps-xml" unset="true"/>
+                        <var name="supps-xml-sorted" unset="true"/>
+                        <var name="source-file-xml" unset="true"/>
+                        <var name="time-now" unset="true"/>
+                        <var name="valid" unset="true"/>
+                        <var name="volume" unset="true"/>
+                        <var name="warning" unset="true"/>
+                        <var name="well-formed" unset="true"/>
+                        
+                        <echo message=" "/>
+                        <echo message="**************************"/>
+                        <echo message="* PROCESSING NEW ARTICLE *"/>
+                        <echo message="**************************"/>
+                        
+                        <tstamp prefix="instance">
+                            <format property="detailed-stamp" pattern="yyyy-MM-dd-HH-mm-ss"/>
+                        </tstamp>
+                        
+                        <echo message="---------- "/>
+                        <echo message="---------- This is an individual article: @{article}"/>
+                        <echo message="---------- "/>
+                        
+                        <propertyregex property="source-filename" input="@{article}" regexp=".*?(.+)(\\)(.+)(\.)(.+)" select="\3"/>
+                        <echo message="---------- This is the source filename: ${source-filename}"/>
+                        <echo message="---------- "/>
+                        
+                        <propertyregex property="source-filename-no-ext" input="${source-filename}" regexp="^(.*?)([\.]|$).*?$" select="\1"/>
+                        <echo message="---------- This is the source filename with no extension: ${source-filename-no-ext}"/>
+                        <echo message="---------- "/>
+                        
+                        <property name="current-export" value="qa-production-${source-filename-no-ext}_${user}_${instance.detailed-stamp}" id="ce"/>
+                        <echo message="---------- This is the current export stamp: ${current-export}"/>
+                        <echo message="---------- "/>
+                        
+                        <mkdir dir="${temp}/${current-export}"/>
+                        
+                        <!-- Resolve the relative filepath for the current export and base directory to be used later on.
+                        This prevents relative paths no longer being useful when being passed in as variables to
+                        the XSLT or other processes where the files are not on the same relative path-->
+                        <dirset dir="${temp}/${current-export}" casesensitive="no" id="relative-temp-dir"/>
+                        <pathconvert refid="relative-temp-dir" property="resolved-temp-dir"/>
+                        <echo message="---------- This is resolved current export directory: ${resolved-temp-dir}"/>
+                        <echo message="---------- "/>
+                        <propertyregex  
+                            property="resolved-base-dir" 
+                            input="${resolved-temp-dir}" 
+                            regexp="(.+)(\\)(bmj)(.+)" 
+                            select="\1\2\3"/>
+                        <echo message="---------- This is the resolved base directory: ${resolved-base-dir}"/>
+                        <echo message="---------- "/>
+                        
+                        <echo message="*************************"/>
+                        <echo message="INSTANCE DATE ${instance.DSTAMP}"/>
+                        <echo message="*************************"/>
+                        <echo message="INSTANCE TIME ${instance.TSTAMP}"/>
+                        <echo message="*************************"/>
+                        
+                        <echo message="---------- Moving ${source-filename} to ${resolved-temp-dir}/source-file/xml ..."/>
+                        <echo message="---------- "/>
+                        
+                        <!-- Remove DOCTYPE declaration so XSLT transformations can process the XML -->
+                        <move file="@{article}" todir="${resolved-temp-dir}/source-file/xml">
+                            <filterchain>
+                                <replaceregex pattern="\r|\n" replace="" flags="g" byline="false"/>
+                                <replaceregex pattern="\s+|\t" replace=" " flags="g" byline="false"/>
+                                <replaceregex pattern="(&lt;!DOCTYPE.*?&gt;)" replace="" byline="true"/>
+                            </filterchain>
+                        </move>
+                        <echo message="---------- This is the full current export filepath: ${resolved-temp-dir}"/>
+                        <echo message="---------- "/>
+                        <runtarget target="check-form"/>
+                    </sequential>
+                </for>
+            </then>
+            <else>
+                <echo message="---------- No files found. Will not process..."/>
+            </else>
+        </if>
+    </target>
+    
+    <target name="check-form">
+        <trycatch property="validation-output">
+            <try>
+                <echo message="Checking if ${source-filename}.xml validates against schema"/>
+                <xmlvalidate
+                    failonerror="true"
+                    lenient="true" 
+                    warn="true" 
+                    file="${resolved-temp-dir}/source-file/xml/${source-filename}.xml"/>
+            </try>
+            <catch>
+                <property name="valid" value="false"/>
+                <echo message="---------- The xml is not valid! ${validation-output}"/>
+                <echo message="----------"/>
+            </catch>
+        </trycatch>
+        
+        <echo message="---------- Is the xml valid? ${valid}"/>
+        <echo message="----------"/>
+        
+        <if>
+            <equals arg1="${valid}" arg2="false"/>
+            <then>
+                <echo message="---------- The XML is badly formed, will not continue with process..."/>
+                <echoxml file="${resolved-temp-dir}/source-file/xml/${source-filename}.xml">
+                    <qa-fail-template>
+                        <p>XML creation from eXtyles has failed.</p>
+                    </qa-fail-template>
+                </echoxml>
+                <runtarget target="create-report"/>
+            </then>
+            <else>
+                <echo message="---------- The xml is valid, will continue with the process..."/>
+                <runtarget target="check-for-extyles-warning"/>
+            </else>
+        </if>
+        
+    </target>
+    
+    <target name="check-for-extyles-warning">
+        <xpath 
+            file="${resolved-temp-dir}/source-file/xml/${source-filename}.xml" 
+            expression="//comment()[contains(.,'Warning: ')]"
+            outputproperty="extyles-warning"/>
+        <!-- If there is a warning message, skip to reporting the message -->
+        <if>
+            <contains string="${extyles-warning}" substring="Warning:" casesensitive="no"/>
+            <then>
+                <property name="warning" value="true"/>
+                <echo message="*******************************"/>
+                <echo message="THIS XML HAS A WARNING MESSAGE"/>
+                <echo message="*******************************"/>
+                <echo message="[${extyles-warning}]"/>
+                <echo message="*******************************"/>
+                <runtarget target="create-report"/>
+            </then>
+            <else>
+                <runtarget target="tweak"/>
+            </else>
+        </if>
+    </target>
+    
+    <target name="tweak">
+        <echo message="---------Making 'tweaked' directory"/>
+        <mkdir dir="${resolved-temp-dir}/jats-xml"/>
+        <echo message="Tweaking JATS XML to replace DOCTYPE declaration with schema declaration and outputting to 'tweaked' folder"/>
+        <xslt basedir="${resolved-temp-dir}/source-file/xml" 
+            destdir="${resolved-temp-dir}/jats-xml" 
+            extension=".xml" 
+            includes="*.xml, *.XML" 
+            style="${xslt}/extyles-tweak.xsl" 
+            processor="trax">
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+        </xslt>
+        <runtarget target="collect-info"/>
+    </target>
+    
+    <!-- Collect metadata from article using XPath task to be passed as parameters later in the build -->
+    <target name="collect-info">
+        
+        <property name="source-file-xml" value="${resolved-temp-dir}/source-file/xml/${source-filename}.XML" />
+        
+        <echo message="----------This is the source file xml ${source-file-xml}"/>
+        
+        <xpath file="${source-file-xml}"
+            expression="//article-id[@pub-id-type='publisher-id']/text()"
+            outputproperty="art-id"/>
+        <echo message="----------This is the article ID: ${art-id}"/>
+        
+        <xpath file="${source-file-xml}" expression="//article-id[@pub-id-type='doi']/text()"
+            outputproperty="art-doi"/>
+        <echo message="----------This is the article DOI: ${art-doi}"/>
+        
+        <xpath file="${source-file-xml}"
+            expression="//subj-group[@subj-group-type='heading']/subject[1]/text()"
+            outputproperty="art-section"/>
+        <echo message="----------This is the article section: ${art-section}"/>
+        
+        <xpath file="${source-file-xml}"
+            expression="//title-group/article-title/text()"
+            outputproperty="article-title"/>
+        <echo message="----------This is the article section: ${article-title}"/>
+        
+        <xpath file="${source-file-xml}" expression="//article/@article-type"
+            outputproperty="art-type"/>
+        <echo message="----------This is the article type: ${art-type}"/>
+        
+        <xpath file="${source-file-xml}" expression="//elocation-id/text()"
+            outputproperty="elocator"/>
+        <echo message="----------This is the article elocator: ${elocator}"/>
+        
+        <xpath file="${source-file-xml}" expression="//contrib-group/contrib[1]/name/given-names/text()"
+            outputproperty="first-author-given-name"/>
+        <echo message="----------This is the first author's given name/s: ${first-author-given-name}"/>
+        
+        <xpath file="${source-file-xml}" expression="//contrib-group/contrib[1]/name/surname/text()"
+            outputproperty="first-author-surname"/>
+        <echo message="----------This is the first author's surname: ${first-author-surname}"/>
+        
+        <xpath file="${source-file-xml}"
+            expression="//journal-id[@journal-id-type='hwp']/text()"
+            outputproperty="journal-id"/>
+        <echo message="----------This is the journal ID: ${journal-id}"/>
+        
+        <xpath file="${source-file-xml}"
+            expression="//journal-id[@journal-id-type='nlm-ta']/text()"
+            outputproperty="journal-nlm"/>
+        <echo message="----------This is the NLM journal ID: ${journal-nlm}"/>
+        
+        <xpath file="${source-file-xml}"
+            expression="//article-categories//series-title/text()"
+            outputproperty="series-title"/>
+        <echo message="----------This is the series title: ${series-title}"/>
+        
+        <xpath file="${source-file-xml}" expression="//supplementary-material/media/@xlink:href"
+            outputproperty="supp-files-xml">
+            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+        </xpath>
+        
+        <sortlist property="supp-files-xml-sorted" value="${supp-files-xml}" delimiter=","/>
+        <echo message="----------The following sorted supplementary files are referenced in the XML: ${supp-files-xml-sorted}"/>
+        
+        <xpath file="${source-file-xml}" expression="//article-meta/volume/text()"
+            outputproperty="volume"/>
+        <echo message="----------This is the volume number: ${volume}"/>
+        
+        
+        
+        <!-- Creates a temporary XML file to pass parameters for altered article section and journal ID types to construct filepaths-->
+        <echo message="----------Creating temporary article section XML"/>
+        
+        <xslt in="${source-file-xml}"
+            out="${resolved-temp-dir}/alt-values/${source-filename}-alt-values.xml"
+            style="${xslt}/alt-values.xsl" 
+            processor="trax">
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+            <param name="art-section" expression="${art-section}"/>
+            <param name="journal-nlm" expression="${journal-nlm}"/>
+        </xslt>
+        
+        <xpath 
+            file="${resolved-temp-dir}/alt-values/${source-filename}-alt-values.xml"
+            expression="//article/section/text()" 
+            outputproperty="art-section-alt"/> 
+        <xpath 
+            file="${resolved-temp-dir}/alt-values/${source-filename}-alt-values.xml"
+            expression="//article/journal/text()" 
+            outputproperty="journal-id-meta"/> 
+        
+        <property name="content-store-article" 
+            value="${content-store}\${journal-id-meta}\articles\${art-section-alt}\${source-filename-no-ext}"/>
+        <echo message="---------- This is the source filename with no extension ${source-filename-no-ext}"/>
+        <echo message="----------"/>
+        <echo message="---------- This is the location of this article: ${content-store-article}"/>
+        <echo message="----------"/>
+        
+        <runtarget target="collect-graphics"/>
+        
+    </target>
+    
+    <target name="collect-graphics">
+        <!-- Checking XML for graphic files -->
+        <echo message="---------- Checking the XML for graphic files..."/>
+        <echo message="----------"/>
+        
+        <xpath 
+            file="${source-file-xml}" 
+            expression="//graphic/@xlink:href" 
+            outputproperty="graphics-xml">
+            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+        </xpath>
+        
+        <sortlist property="graphics-xml-sorted" value="${graphics-xml}" delimiter=","/>
+        
+        <condition property="graphics-present-xml" else="false">
+            <length string="${graphics-xml-sorted}" when="greater" length="0"/>
+        </condition>
+        
+        <echo message="---------- Were graphics found in the XML? ${graphics-present-xml}"/>
+        <echo message="----------"/>
+        <echo message="---------- This is the list of sorted graphic files found in the XML: ${graphics-xml-sorted}"/>
+        <echo message="----------"/>
+        <!-- ///////////////////////////////////////////////////////////////// -->
+        
+        <!-- Checking graphics folder for graphics files -->
+        <if>
+            <equals arg1="${graphics-present-xml}" arg2="true"/>
+            <then>
+                <mkdir dir="${resolved-temp-dir}/graphics-found" id="graphics-found-folder"/>
+                
+                <!-- Create static XML file for each article to insert list of graphics found in the folder -->
+                <echoxml file="${resolved-temp-dir}/graphics-found/graphics-found-info.xml">
+                    <graphics>
+                        <graphics-xml></graphics-xml>
+                        <graphics-folder></graphics-folder>
+                    </graphics>
+                </echoxml>
+                
+                <fileset dir="${resolved-temp-dir}/graphics-found" casesensitive="no" id="graphics-found-file">
+                    <include name="*.xml"/>
+                </fileset>
+                <pathconvert property="graphics-found-filepath" refid="graphics-found-file"/>
+                <echo message="---------- This the is graphics-found filepath: ${graphics-found-filepath}"/>
+                
+                <for list="${graphics-xml-sorted}" param="graphic-file-xml">
+                    <sequential>
+                        <echo message="---------- This graphic file was found in the XML: @{graphic-file-xml}"/>
+                        <echo message="----------"/>
+                        
+                        <xmltask 
+                            source="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
+                            dest="${resolved-temp-dir}/graphics-found/graphics-found-info.xml"
+                            encoding="utf-8"
+                            expandEntityReferences="false">
+                            <insert path="graphics/graphics-xml" >
+                                <![CDATA[<graphic-xml>@{graphic-file-xml}</graphic-xml>]]>
+                            </insert>
+                        </xmltask>
+                    </sequential>
+                </for>
+                
+                <if>
+                    <available file="${content-store-article}/graphics" type="dir"/>
+                    <then>
+                        <property name="graphics-folder-available" value="true" />
+                        <echo message="---------- Is the graphics folder available? ${graphics-folder-available}"/>
+                        <echo message="----------"/>
+                        
+                        <pathconvert property="graphics-found-folder" pathsep="," setonempty="false">
+                            <path>
+                                <fileset dir="${content-store-article}/graphics">
+                                    <exclude name="Thumbs.db"/>
+                                </fileset>
+                            </path>
+                        </pathconvert>
+                        <echo message="---------- These are the graphics found in the folder: ${graphics-found-folder}"/>
+                        <echo message="----------"/>
+                        
+                        
+                        <for list="${graphics-found-folder}" param="graphic-file-folder">
+                            <sequential>
+                                <var name="graphic-file" unset="true"/>
+                                
+                                <propertyregex input="@{graphic-file-folder}" 
+                                    regexp="^.*?(.+)(\\)(.+)(\.)(.+)$" 
+                                    replace="\3" 
+                                    property="graphic-file"/>
+                                
+                                
+                                <echo message="---------- Graphic file found in the folder: ${graphic-file}"/>
+                                <echo message="---------- "/>
+                                
+                                <xmltask source="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
+                                    dest="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
+                                    encoding="utf-8"
+                                    expandEntityReferences="false">
+                                    <insert path="/graphics/graphics-folder" >
+                                        <![CDATA[<graphic-folder>${graphic-file}</graphic-folder>]]>
+                                    </insert>
+                                </xmltask>
+                                
+                                <!-- Convert to JPG for preview -->
+                                <echo message="----------"/>
+                                <echo message="---------- Converting graphic to JPG for preview..."/>
+                                <echo message="----------"/>
+                                <!-- ImageMagick -->
+                                <mkdir dir="${resolved-temp-dir}/preview/graphics"/>
+                                <mkdir dir="${resolved-temp-dir}/pdfgraphics"/>
+                                <exec executable="magick" failonerror="false">
+                                    <arg value="-density"/>
+                                    <arg value="300"/>
+                                    <arg value="@{graphic-file-folder}"/>
+                                    <arg value="-resize"/>
+                                    <arg value="1000X1000"/>
+                                    <arg value="-layers"/>
+                                    <arg value="flatten"/>
+                                    <arg value="${resolved-temp-dir}/preview/graphics/${graphic-file}.jpg"/>
+                                </exec>
+                                
+                                <copy 
+                                    file="${resolved-temp-dir}/preview/graphics/${graphic-file}.jpg" 
+                                    todir="${resolved-temp-dir}/pdfgraphics"/>
+                                
+                                <copy 
+                                    file="${resolved-temp-dir}/preview/graphics/${graphic-file}.jpg" 
+                                    todir="${resolved-base-dir}/${processing-folder}/prodtracker/previews/${art-id}/graphics"/>
+                                
+                            </sequential>
+                        </for>
+                        
+                        <xpath file="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
+                            expression="//graphic-xml/text()" outputproperty="graphics-found-info-xml"/>
+                        <sortlist property="graphics-info-xml-sorted" value="${graphics-found-info-xml}" delimiter=","/>
+                        <echo message="----------This is the sorted list of graphics found in the folder: ${graphics-info-xml-sorted}"/>
+                        <echo message="----------"/>
+                        
+                        <xpath file="${resolved-temp-dir}/graphics-found/graphics-found-info.xml" 
+                            expression="//graphic-folder/text()" outputproperty="graphics-found-info-folder"/>
+                        <sortlist property="graphics-info-folder-sorted" value="${graphics-found-info-folder}" delimiter=","/>
+                        <echo message="----------This is the sorted list of graphics found in the folder: ${graphics-info-folder-sorted}"/>
+                        <echo message="----------"/>
+                        
+                    </then>
+                    <else>
+                        <property name="graphics-folder-available" value="false"/>
+                        <echo message="---------- Is the graphics folder available? ${graphics-folder-available}"/>
+                        <echo message="----------"/>
+                    </else>
+                </if>
+            </then>
+            <else>
+                <echo message="---------- Are there graphics referenced in the xml? ${graphics-present-xml}"/>
+                <echo message="----------"/>
+            </else>
+        </if>
+        <runtarget target="collect-supp-files"/>
+    </target>
+    
+    <target name="collect-supp-files">
+        <!-- Checking XML and article folder in content store for supplementary files -->
+        <echo message="---------- Checking the XML for supplementary files..."/>
+        
+        <xpath file="${source-file-xml}" expression="//supplementary-material/media/@xlink:href" outputproperty="supps-xml">
+            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+        </xpath>
+        
+        <sortlist property="supps-xml-sorted" value="${supps-xml}" delimiter=","/>
+        
+        <condition property="supps-present-xml" else="false">
+            <length string="${supps-xml-sorted}" when="greater" length="0"/>
+        </condition>
+        
+        <echo message="---------- Supplementary files found in the XML? ${supps-present-xml}"/>
+        <echo message="----------"/>
+        <echo message="---------- This is the unsorted list of supplementary files found in the XML: ${supps-xml}"/>
+        <echo message="----------"/>
+        <echo message="---------- This is the sorted list of supplementary files found in the XML: ${supps-xml-sorted}"/>
+        
+        <!-- Supplementary file collecting -->
+        <!-- Checks article XML for any supplementary file references then looks for corresponding supplementary files in the data-supps folder if so -->
+        <echo message="----------"/>
+        <echo message="---------- Collecting supplementary files..."/>
+        <echo message="----------"/>
+        
+        <condition property="supps-present-folder" else="false">
+            <available file="${content-store-article}/data-supp" type="dir"/>
+        </condition>
+        
+        <echo message="---------- Is the supplementary file folder available in the content store? ${supps-present-folder}"/>
+        
+        <if>
+            <equals arg1="${supps-present-xml}" arg2="true"/>
+            <then>
+                <if>
+                    <equals arg1="${supps-present-folder}" arg2="true"/>
+                    <then>
+                        <for list="${supp-files-xml}" param="supp-file-xml">
+                            <sequential>
+                                <var name="supp-folder" unset="true"/>
+                                <var name="supp-file-folder" unset="true"/>
+                                
+                                <echo message="----------This supp file was found in the XML: @{supp-file-xml}"/>
+                                
+                                <pathconvert property="supp-folder" pathsep="," setonempty="false">
+                                    <path>
+                                        <fileset dir="${content-store-article}/data-supp">
+                                            <include name="@{supp-file-xml}.*"/>
+                                        </fileset>
+                                    </path>
+                                </pathconvert>
+                                
+                                <echo message="---------- This is the matching supp file path: ${supp-folder}"/>
+                                
+                                <if>
+                                    <isset property="supp-folder"/>
+                                    <then>
+                                        <propertyregex 
+                                            property="supp-file-folder" 
+                                            input="${supp-folder}" 
+                                            regexp="^(.*?)(.+)(\\)(.+)(\.)(.+)$" 
+                                            replace="\4" 
+                                            global="true"/>
+                                        <echo message="----------This supp file was found in the folder: ${supp-file-folder} "/>
+                                        <echo file="${resolved-temp-dir}/supps/supps.txt" append="true" message="${supp-file-folder},"/>
+                                        
+                                        <copy 
+                                            file="${supp-folder}" 
+                                            todir="${resolved-base-dir}/${processing-folder}/prodtracker/previews/${art-id}/data-supp"/>
+                                        
+                                    </then>
+                                </if>
+                            </sequential>
+                        </for>
+                    </then>
+                </if>
+                <loadfile property="supps-text-file" srcfile="${resolved-temp-dir}/supps/supps.txt" failonerror="false"/>
+                <sortlist property="supps-text" value="${supps-text-file}" delimiter="," />
+                <echo message="----------These are the supp files from the text file: ${supps-text}"/>
+            </then>
+        </if>
+        <runtarget target="create-metadata"/>
+    </target>
+    
+    <target name="create-metadata">
+        <!-- Create metadata info file -->
+        <echo message="Creating metadata info XML"/>
+        <xslt 
+            in="${source-file-xml}" 
+            out="${resolved-temp-dir}/qa/${source-filename}-meta.xml"
+            style="${xslt}/metadata.xsl" processor="trax">
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+            <param name="article-id" expression="${art-id}"/>
+            <param name="article-doi" expression="${art-doi}"/>
+            <param name="article-type" expression="${art-type}"/>
+            <param name="article-section" expression="${art-section}"/>
+            <param name="graphics-folder-available" expression="${graphics-folder-available}"/>
+            <param name="graphics-found-filepath" expression="${graphics-found-filepath}"/>
+            <param name="graphics-present-xml" expression="${graphics-present-xml}"/>
+            <param name="journal" expression="${journal-id}"/>
+            <param name="journal-nlm" expression="${journal-id-nlm-ta}"/>
+            <param name="source-file" expression="${resolved-temp-dir}/source-file/xml/${source-filename}.xml"/>
+            <param name="source-filename" expression="${art-id}"/>
+            <param name="supp-files-in-folder" expression="${supps-text}"/>
+            <param name="supp-files-in-xml" expression="${supps-xml-sorted}"/>
+        </xslt>
+        <runtarget target="run-schematron-validation"/>
+    </target>
+    
+    
+    <target name="run-schematron-validation">
+        <!-- Run Schematron on article and output XML report file (SVRL).-->
+        <mkdir dir="${resolved-temp-dir}/qa"/>
+        <echo message="---------- This is the QA directory: ${resolved-temp-dir}/qa"/>
+        <echo message="---------- This is the file to be output in the qa directory: ${source-filename}-result-${start.DSTAMP}-${start.TSTAMP}.xml"/>
+        <schematron 
+            file="${source-file-xml}"
+            schema="${schematron}/BMJ_business_rules.sch" 
+            failonerror="false"
+            OutputDir="${resolved-temp-dir}/qa"
+            outputFilename="${source-filename}-result-${start.DSTAMP}-${start.TSTAMP}.xml"
+            debugmode="false" 
+            queryLanguageBinding="xslt2"/>
+        <runtarget target="create-preview-html"/>
+    </target>
+    
+    <target name="create-preview-html">
+        <!-- Create JATS preview HTML -->
+        <echo message="Creating JATS preview HTML"/>
+        <xslt 
+            in="${resolved-temp-dir}/jats-xml/${source-filename}.xml"
+            out="${resolved-temp-dir}/preview/jats-preview/${source-filename}.html"
+            style="${xslt}/JATS_NLM_preview.xsl" 
+            processor="trax">
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+            <param name="art-id" expression="${art-id}"/>
+        </xslt>
+        <copy 
+            file="${resolved-temp-dir}/preview/jats-preview/${source-filename}.html" 
+            todir="${resolved-base-dir}/${processing-folder}/prodtracker/previews/${art-id}"/>
+        <runtarget target="create-report"/>
+    </target>
+    
+    <target name="create-report">
+        
+        <!-- Create HTML QA report from Schematron report XML -->
+        <echo message="Creating HTML Schematron report"/>
+        <xslt
+            in="${resolved-temp-dir}/source-file/xml/${source-filename}.xml"
+            out="${resolved-temp-dir}/qa/${source-filename-no-ext}-QA-report.html"
+            style="${xslt}/qa-html.xsl" processor="trax">
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+            <param name="article-section" expression="${art-section}"/>
+            <param name="art-id" expression="${source-filename-no-ext}"/>
+            <param name="content-store" expression="${content-store-article}"/>
+            <param name="extyles-xml" expression="${content-store-article}/wip/${source-filename}.xml"/>
+            <param name="graphic-file-extension" expression="${graphic-file-extension}"/>
+            <param name="graphics-folder-available" expression="${graphics-folder-available}"/>
+            <param name="graphics-found-filepath" expression="${graphics-found-filepath}"/>
+            <param name="graphics-info-folder-sorted" expression="${graphics-info-folder-sorted}"/>
+            <param name="graphics-info-xml-sorted" expression="${graphics-info-xml-sorted}"/>
+            <param name="meta" expression="${resolved-temp-dir}/qa/${source-filename}-meta.xml"/>
+            <param name="qa-svrl" expression="${resolved-temp-dir}/qa/${source-filename}-result-${start.DSTAMP}-${start.TSTAMP}.xml"/>
+            <param name="schema-invalid" expression="${schema-invalid}"/>
+            <param name="source" expression="${resolved-temp-dir}/source-file/xml/${source-filename}.xml"/>
+            <param name="source-filename" expression="${source-filename}"/>
+            <param name="supp-files-home" expression="${content-store-article}/data-supp"/>
+        </xslt>
+        <copy 
+            file="${resolved-temp-dir}/qa/${source-filename-no-ext}-QA-report.html" 
+            todir="${resolved-base-dir}/${processing-folder}/prodtracker/qa_reports"/>
+        <copy 
+            file="${resolved-temp-dir}/qa/${source-filename-no-ext}-QA-report.html" 
+            todir="${content-store-article}/qa"/>
+        
+        
+        <!-- Create info file for Prodtracker -->
+        <mkdir dir="${resolved-temp-dir}/prodtracker/info_files"/>
+        <echoxml file="${resolved-temp-dir}/prodtracker/info_files/${source-filename-no-ext}.info.xml">
+            <item/>
+        </echoxml>
+        
+        <tstamp>
+            <format property="time-now" pattern="yyyy-MM-dd-HH:mm:ss"/>
+        </tstamp>
+        
+        <xslt
+            in="${resolved-temp-dir}/prodtracker/info_files/${source-filename-no-ext}.info.xml"
+            out="${resolved-base-dir}/${processing-folder}/prodtracker/info_files/${source-filename-no-ext}.info.xml"
+            style="${xslt}/prodtracker-info.xsl" processor="trax">
+            <param name="art-section" expression="${art-section}"/>
+            <param name="art-id" expression="${art-id}"/>
+            <param name="article-title" expression="${article-title}"/>
+            <param name="elocator" expression="${elocator}"/>
+            <param name="first-author-given-name" expression="${first-author-given-name}"/>
+            <param name="first-author-surname" expression="${first-author-surname}"/>
+            <param name="graphics" expression="${graphics-xml-sorted}"/>
+            <param name="journal-nlm" expression="${journal-nlm}"/>
+            <param name="qa-report-path" expression="${resolved-base-dir}\${processing-folder}\prodtracker\qa_reports\${source-filename-no-ext}-QA-report.html"/>
+            <param name="series-title" expression="${series-title}"/>
+            <param name="source-filename" expression="${source-filename}"/>
+            <param name="source-filename-no-ext" expression="${source-filename-no-ext}"/>
+            <param name="supps" expression="${supp-files-xml-sorted}"/>
+            <param name="time-now" expression="${time-now}"/>
+            <param name="valid" expression="${valid}"/>
+            <param name="volume" expression="${volume}"/>
+            <param name="warning" expression="${warning}"/>
+        </xslt>
+        
+        <!-- Check to see if prodtracker file is available and create one if not -->
+        <if>
+            <not>
+                <available file="${resolved-base-dir}/${processing-folder}/prodtracker/tracker_table/prodtracker-table.html"/>
+            </not>
+            <then>
+                <echoxml file="${resolved-base-dir}/${processing-folder}/prodtracker/tracker_table/prodtracker-table.html">
+                    <html/>
+                </echoxml>
+            </then>
+        </if>
+        
+        <!-- Concatenate XML info files into single infoset.xml which can then be used to generate the HTML prodtracker table -->
+        <echo message="----------"/>
+        <echo message="---------- Concatenating info files into single infoset xml..."/>
+        <echo message="----------"/>
+        <fileset dir="${resolved-base-dir}/${processing-folder}/prodtracker/info_files" id="info-files">
+            <include name="*.info.xml"/>
+        </fileset>
+        <echo file="${resolved-temp-dir}/prodtracker/info_files/_info-tmp.xml" message="&lt;infoset&gt;"/>
+        <concat 
+            append="true" 
+            destfile="${resolved-temp-dir}/prodtracker/info_files/_info-tmp.xml" 
+            encoding="utf-8" 
+            outputencoding="utf-8">
+            <fileset refid="info-files"/>
+            <filterchain>
+                <tokenfilter>
+                    <replaceregex pattern="&lt;\?xml.*?&gt;" replace="" byline="true" flags="gi"/>
+                </tokenfilter>
+            </filterchain>
+        </concat>
+        <echo file="${resolved-temp-dir}/prodtracker/info_files/_info-tmp.xml" message="&lt;/infoset&gt;" append="true"/>
+        
+        <xslt
+            in="${resolved-temp-dir}/prodtracker/info_files/_info-tmp.xml"
+            out="${resolved-base-dir}/${processing-folder}/prodtracker/tracker_table/prodtracker-table.html"
+            style="${xslt}/prodtracker-table.xsl" processor="trax">
+        </xslt>
+        
+        <!-- If there is a warning message, skip to reporting the message -->
+        <if>
+            <equals arg1="${valid}" arg2="false"/>
+            <then>
+                <echo message="****************************************************************************"/>
+                <echo message="* XML is badly formed. Reporting error and ending process for this article *"/>
+                <echo message="****************************************************************************"/>
+            </then>
+            <elseif>
+                <contains string="${extyles-warning}" substring="Warning:" casesensitive="no"/>
+                <then>
+                    <echo message="****************************************************************************"/>
+                    <echo message="* Article has warning. Reporting error and ending process for this article *"/>
+                    <echo message="****************************************************************************"/>
+                </then>
+            </elseif>
+            <else>
+                <runtarget target="convert-to-id-xml"/>
+            </else>
+        </if>
+    </target>
+    
+    <target name="convert-to-id-xml">
+        <!-- Convert BMJ-JATS XML to InDesign XML -->
+        <echo message="Converting BMJ-JATS XML to InDesign XML for in-house typesetting"/>
+        <xslt 
+            in="${resolved-temp-dir}/jats-xml/${source-filename}.xml"
+            out="${resolved-temp-dir}/id-xml/${source-filename}-JATS.xml"
+            style="${xslt}/jats-to-id.xsl" 
+            processor="trax" 
+            force="true">
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+        </xslt>
+        <runtarget target="create-pdf"/>
+    </target>
+    
+     <target name="create-pdf">
+        
+        <echo message="----------"/>
+        <echo message="---------- Transforming XML to FO XML..."/>
+        <echo message="----------"/>
+        
+        <tstamp>
+            <format property="date-today" pattern="yyyy/MM/dd"/>
+        </tstamp>
+        
+        <!-- Property to supress published date for PDF preview. Passed into 'article-fo-1-0.xsl' and referred to in 'setup-page-layout-1-0.xsl' -->
+        <property name="pdfPreview" value="pdfPreview"/>
+        
+        <xslt 
+            in="${resolved-temp-dir}/jats-xml/${source-filename}.xml"
+            out="${resolved-temp-dir}/pdf-preview/${source-filename}-FO.xml"
+            style="${xslfo}/jats/article-fo-1-0.xsl"
+            processor="trax"
+            force="true"
+            extension=".xml">
+            <param name="logo-location-path" expression="${logos}"/>
+            <param name="graphics-location-path" expression="${resolved-temp-dir}/pdfgraphics"/>
+            <param name="batchPubDate" expression="${date-today}"/>
+            <param name="pdfPreview" expression="pdfPreview"/>
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+        </xslt>
+        
+        <echo message="----------"/>
+        <echo message="---------- Converting FO XML into PDF..."/>
+        <echo message="----------"/>
+         
+        <exec executable="${xep}\xep.bat">
+            <arg value="${resolved-temp-dir}/pdf-preview/${source-filename}-FO.xml"/>
+        </exec>
+        
+        <copy
+            file="${resolved-temp-dir}/pdf-preview/${source-filename}-FO.pdf"
+            tofile="${resolved-base-dir}/${processing-folder}/prodtracker/pdfs/${source-filename-no-ext}.pdf"/>
+        <runtarget target="move-files"/>
+    </target>
+    
+    <target name="move-files">
+        <!-- Create folder structure in content store for each article based upon information
+            from the metadata file and move all files from 'xml-processing' to their corresponding 
+            folders in the content store.-->
+        <echo message="---------- Moving files to content store..."/>
+        <mkdir dir="${content-store-article}"/>
+        <mkdir dir="${content-store-article}/id-xml"/>
+        <mkdir dir="${content-store-article}/info"/>
+        <mkdir dir="${content-store-article}/jats-xml"/>
+        <mkdir dir="${content-store-article}/qa"/>
+        <if>
+            <available file="${resolved-temp-dir}/preview/graphics" type="dir"/>
+            <then>
+                <move todir="${content-store-article}/preview/graphics" encoding="utf-8">
+                    <fileset dir="${resolved-temp-dir}/preview/graphics"/>
+                </move>
+                <delete dir="${content-store-article}/graphics/converted"/>
+            </then>
+        </if>
+        <move file="${resolved-temp-dir}/id-xml/${source-filename}-JATS.xml" 
+            tofile="${content-store-article}/id-xml/${source-filename-no-ext}-JATS.xml" 
+            encoding="utf-8"/>
+        <move file="${resolved-temp-dir}/jats-xml/${source-filename}.xml" 
+            tofile="${content-store-article}/jats-xml/${source-filename-no-ext}.xml" 
+            encoding="utf-8"/>
+        <copy file="${resolved-temp-dir}/qa/${source-filename}-result-${instance.DSTAMP}-${instance.TSTAMP}.xml" 
+            tofile="${content-store-article}/qa/${source-filename-no-ext}-result-${instance.DSTAMP}-${instance.TSTAMP}.xml" 
+            encoding="utf-8"/>
+        <move file="${resolved-temp-dir}/qa/${source-filename}-meta.xml" 
+            tofile="${content-store-article}/info/${source-filename-no-ext}-meta.xml" 
+            encoding="utf-8"/>
+        <move file="${resolved-temp-dir}/preview/jats-preview/${source-filename}.html" 
+            tofile="${content-store-article}/preview/jats-preview/${source-filename-no-ext}.html" 
+            encoding="utf-8"/>
+        <delete dir="${content-store-article}/source-file"/>
+        <copy todir="${content-store-article}/source-file" encoding="utf-8">
+            <fileset dir="${resolved-temp-dir}/source-file"/>
+        </copy>
+        <copy todir="${archive}/content_store/${journal-id-meta}/articles/${art-section-alt}/${source-filename-no-ext}">
+            <fileset dir="${content-store-article}">
+                <exclude name="*.db"/>
+                <exclude name="*.ini"/>
+                <exclude name="**/*.db"/>
+                <exclude name="**/*.ini"/>
+            </fileset>
+        </copy>
+        <!--<runtarget target="update-paw"/>-->
+    </target>
+    
+<!--    <target name="update-paw">
+        
+        <echo message="********** THIS IS THE SOURCE FILENAME: ${source-filename-no-ext}"/>
+        
+        <propertyregex 
+            property="abridged-article-check" 
+            input="${source-filename-no-ext}" 
+            regexp="(\d+)(\D+)" 
+            replace="\1\2" 
+            global="true" defaultvalue=""/>
+        <echo message="**************************************************************************************"/>
+        <echo message="-\-\-\-\-\-\-\-\-\- This is the result of the abridged article check: ${abridged-article-check}"/>
+        <echo message="**************************************************************************************"/>
+        
+        <condition property="abridged-version" value="true" else="false">
+            <length string="${abridged-article-check}" when="greater" length="0"/>
+        </condition>
+        
+        <switch value="${abridged-version}">
+            <case value="false">
+                <echo message="Article naming convention suggests full article, will check and update PAW if necessary..."/>
+                <echo message="******************************************************************************************"/>
+                <!-\- PAW API interaction -\->
+                <property name="article-instance" value="${source-filename-no-ext}-${start.DSTAMP}-${start.TSTAMP}"/>
+                <mkdir dir="paw-meta/${article-instance}"/>
+                
+                <!-\- GET to check PAW for existing article metadata. XML with article info is returned if exists, empty XML if not. -\->
+                <exec executable="curl">
+                    <arg value="-v"/>
+                    <arg value="http://bmjapi.publishingatwork.com/api/Article/GetArticle/${source-filename-no-ext}"/>
+                    <arg value="-o"/>
+                    <arg value="paw-meta/${article-instance}/article-meta-returned-${start.DSTAMP}-${start.TSTAMP}.xml"/>
+                </exec>
+                
+                <loadfile srcfile="paw-meta/${article-instance}/article-meta-returned-${start.DSTAMP}-${start.TSTAMP}.xml"  property="article-meta-response"/>
+                <echo message="*********************************************************"/>
+                <echo message="Test to see if article record exists..."/>
+                <echo message="*********************************************************"/>
+                <echo message="Article meta request: ${article-meta-response}"/>
+                <echo message="*********************************************************"/>
+                
+                <exec executable="${curl2-dir}/src/curl.exe">
+                    <arg value="-v"/>
+                    <arg value="http://bmjapi.publishingatwork.com/api/Article/GetArticleStage/${source-filename-no-ext}"/>
+                    <arg value="-o"/>
+                    <arg value="paw-meta/${article-instance}/article-stage-returned-${start.DSTAMP}-${start.TSTAMP}.txt"/>
+                </exec>
+                
+                <loadfile srcfile="paw-meta/${article-instance}/article-stage-returned-${start.DSTAMP}-${start.TSTAMP}.txt"  property="stage-request-response"/>
+                <echo message="*********************************************************"/>
+                <echo message="Test to see if article stage exists..."/>
+                <echo message="***********************************************************"/>
+                <echo message="Article stage request: ${stage-request-response}"/>
+                <echo message="***********************************************************"/>
+                
+                <!-\- PAW integration. Awaiting changes from RedFish to -\->
+                <if>
+                    <contains string="${stage-request-response}" substring="Object reference not set to an instance of an object"/>
+                    <then>
+                        <echo message="Article does not exist in PAW, will add an article record..."/>
+                        <echo message="************************************************************"/>
+                        
+                        <!-\- Values to populate the AddArticle XML template (some info is collected earlier in the process) -\->
+                        <xpath file="${source-file-xml}" expression="//article-meta/title-group/article-title/text()" outputproperty="article-title"/>
+                        <xpath file="${source-file-xml}" expression="//article-meta/contrib-group/contrib[@corresp='yes']/name/given-names/text()" outputproperty="given-name"/>
+                        <xpath file="${source-file-xml}" expression="//article-meta/contrib-group/contrib[@corresp='yes']/name/surname/text()" outputproperty="surname"/>
+                        <xpath file="${source-file-xml}" expression="//author-notes/corresp/email/text()" outputproperty="email"/>
+                        <xpath file="${source-file-xml}" expression="//article-categories/subj-group[@subj-group-type='heading']/subject/text()" outputproperty="subject"/>
+                        <xpath file="${source-file-xml}" expression="//graphic" outputproperty="graphics"/>
+                        <xmltask source="${source-file-xml}">
+                            <copy path="count(//graphic)" property="graphic-count"/>
+                        </xmltask>
+                        <xpath file="${source-file-xml}" expression="//license/@license-type" outputproperty="open-access"/>
+                        <condition property="oa" else="false">
+                            <equals arg1="${open-access}" arg2="open-access"/>
+                        </condition>
+                        
+                        <echo message="-\-\-\-\-\-\-\-\-\- This is the count of graphics in the XML: ${graphic-count}"/>
+                        
+                        
+                        <echoxml file="paw-meta/${article-instance}/xml-meta-${start.DSTAMP}-${start.TSTAMP}.xml">
+                            <AddArticle>
+                                <ArticleTitle>${article-title}</ArticleTitle>
+                                <Author>
+                                  <FullName>${given-name}&#x0020;${surname}</FullName>
+                                  <Email>${email}</Email>
+                                  <Title></Title>
+                                  <FirstName>${given-name}</FirstName>
+                                  <LastName>${surname}</LastName>
+                                </Author>
+                                <JournalId>284</JournalId>
+                                <DOI>${art-doi}</DOI>
+                                <ArticleType>${subject}</ArticleType>
+                                <Stage>Final Changes</Stage>
+                                <Figures>${graphic-count}</Figures>
+                                <Flags>
+                                  <Flag name="Web Only Data">False</Flag>
+                                  <Flag name="CC-BY-NC">False</Flag>
+                                </Flags>
+                                <OpenAccess>${oa}</OpenAccess>
+                          </AddArticle>
+                        </echoxml>
+                        
+                        <exec executable="${curl-dir}/src/curl.exe">
+                            <arg value="-X"/>
+                            <arg value="PUT"/>
+                            <arg value="-d"/>
+                            <arg value="@paw-meta/${article-instance}/xml-meta-${start.DSTAMP}-${start.TSTAMP}.xml"/>
+                            <arg value="http://bmjapi.publishingatwork.com/api/Article/AddArticle/${source-filename-no-ext}"/>
+                            <arg value="-o"/>
+                            <arg value="paw-meta/${article-instance}/add-article-response-${start.DSTAMP}-${start.TSTAMP}.xml"/>
+                        </exec>
+                        
+                    </then>
+                    <else>
+                        
+                        <echo message="*******************************************************"/>
+                        <echo message="Article already exists in PAW, will not add anything..."/>
+                        <echo message="*******************************************************"/>
+                        <!-\-<echo message="Updating the article stage..."/>
+                        <echo message="*****************************"/>
+                        
+                        <exec executable="curl">
+                            <arg value="-v"/>
+                            <arg value="-D"/>
+                            <arg value="paw-meta/${article-instance}/update-stage-response-${start.DSTAMP}-${start.TSTAMP}.txt"/>
+                            <arg value="-H"/>
+                            <arg value="Content-Length:0"/>
+                            <arg value="-X"/>
+                            <arg value="PUT"/>
+                            <arg value="http://bmjapi.publishingatwork.com/api/Article/UpdateArticleStage/${source-filename-no-ext}/With%20Tech%20Ed"/>
+                        </exec>
+                        
+                        <loadfile srcfile="paw-meta/${article-instance}/update-stage-response-${start.DSTAMP}-${start.TSTAMP}.txt"  property="stage-update-response"/>
+                        <echo message="***********************************************"/>
+                        <echo message="Update stage response: ${stage-update-response}"/>
+                        <echo message="***********************************************"/>-\->
+                    </else>
+                </if>
+            </case>
+            <case value="true">
+                <echo message="Article naming convention suggests abridged article, will not update PAW..."/>
+            </case>
+        </switch>
+        
+    </target>-->
+    
+</project>

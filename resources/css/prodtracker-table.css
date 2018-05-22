@@ -1,0 +1,219 @@
+﻿
+body
+{
+    margin:0px;
+    padding-right:5px;
+    padding-left:5px;
+}
+
+html
+{
+    font-family:arial, helvetica, sans-serif;
+}
+
+.status-fail
+{
+    background-color:#cc3232;
+    display:block;
+    height:100%;
+}
+
+.status-pass
+{
+    background-color:#2dc937;
+    display:block;
+    height:100%;
+}
+
+.status-warning
+{
+    background-color:#e7b416;
+    display:block;
+    height:100%;
+}
+
+.status-xml-warning
+{
+    background-color:#CFD0CF;
+    border:1px solid #8F9695;
+    display:block;
+    height:100%;
+}
+
+.status-xml-broken
+{
+    background-color:white;
+    border:1px solid #8F9695;
+    display:block;
+    height:100%;
+}
+
+table
+{
+    border-collapse:collapse;
+    margin-bottom:20px;
+}
+
+table.all-items
+{
+    display:block;
+    margin-top:120px;
+}
+
+table.items-by-section
+{
+    width:100%;
+    margin-bottom:0px;
+    margin-top:120px;
+}
+
+table.items-by-section-header
+{
+    font-size:16pt;
+    width:100%;
+}
+
+table.items-by-section-header tr th
+{
+    font-size:16pt;
+}
+
+table.section-selection
+{
+    background-color:white;
+    opacity:1;
+    position:fixed;
+    top:0px;
+    width:100%;
+}
+
+table.section-selection tbody tr td a
+{
+    color:black;
+    text-decoration:none;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2
+}
+
+td
+{
+    font-size:10pt;
+    padding:8px;
+}
+
+td.section-box
+{
+    border:1px solid #dcdee2;
+    box-shadow: 0px 2px 2px 0px #dcdee2;
+    display:inline-block;
+    margin:2px;
+    font-size:9pt;
+    float:left;
+    padding:10px;
+}
+
+/* Table header rules. In sequence order, left to right. */
+.td-section
+{
+    font-size:11pt;
+    width:10%;
+}
+
+
+.td-art-id
+{
+    font-size:11pt;
+    width:5%;
+}
+
+.td-title
+{
+    font-size:11pt;
+    width:15%;
+}
+
+.td-author
+{
+    font-size:11pt;
+    width:15%;
+}
+
+.td-added
+{
+    font-size:11pt;
+    width:5%;
+}
+
+.td-status-colour
+{
+    font-size:11pt;
+    width:5%;
+}
+
+.td-status
+{
+    font-size:11pt;
+    width:7%;
+}
+
+.td-info
+{
+    font-size:11pt;
+    width:18%;
+}
+
+.td-batch
+{
+    font-size:11pt;
+    width:5%;
+}
+
+.td-embargo
+{
+    font-size:11pt;
+    width:5%;
+}
+/*************************************/
+
+
+th
+{
+    font-size:11pt;
+    padding:10px;
+    text-align:left;
+}
+
+thead.main-thead-grouping
+{
+    background-color:#373e4f;
+    width:100%;
+}
+
+thead.main-thead-grouping tr th
+{
+    color:white;
+    font-size:16pt;
+    font-weight:600;
+}
+
+tr.tr-header td a
+{
+    color:#373e4f;
+    text-decoration:none;
+}
+
+tr.tr-header
+{
+    background-color:#c0ccd8;
+    font-weight:600;
+}
+
+tr.section-grouping td
+{
+    background-color:#666f82;
+    color:white;
+    font-size:12pt;
+    font-weight:600;
+}

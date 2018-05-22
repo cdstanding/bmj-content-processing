@@ -1,0 +1,317 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project 
+    basedir="."
+    name="build_batch"
+    default="process-toc-file">
+    
+    <description>
+        Summary:
+        
+        This is a build which creates either a v-issue batch for send to Highwire or an iPad batch for
+        use in the iPad app.
+        
+        Step by step:
+        
+        A Production Editor fills in a Batch Creator Google Sheet with some metadata about a batch and
+        includes the path to each article in the content store:
+        
+        https://docs.google.com/spreadsheets/d/1KS0wAcy7Kw4kIC4ZK6OPGGbbhC5aWzMclvGxiuZ4N2Q/edit#gid=0
+        
+        The sheet uses some Google script to create a timed and dated 'Batch-toc-xxxxxxxxxxxx.xml'.
+        
+        The 'Batch-toc-xxxxxxxxxxxx.xml' is downloaded and the production Editor right clicks on this to choose
+        one of two options which will in turn call one of two batch files:
+        
+        build_create_batch_ipad.bat
+        build_create_batch_vissue.bat
+        
+        If the iPad process is run, this will create a TOC XML containing the DOI of each article, the NLM XML
+        will be transformed into an iPad-ready XML and any graphic files will be collected. The transformed XML
+        is copied into a folder named by the BMJ DOI for the article and any graphics are placed in a subfolder
+        within this, all of these files and folders sit within a folder named with the batch number from the
+        'Batch-toc-xxxxxxxxxxxx.xml'.
+        
+        If the V-issue process is run, this will create a meta_issue.xml and a go.xml for delivery to Highwire and
+        copy the files in a folder named with the batch number from the 'Batch-toc-xxxxxxxxxxxx.xml'.
+        The rest of the files for the creation of the issue are added to the folder by the Production Editor.
+        
+    </description>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    <!-- ////////////////////////// -->
+    
+    <property name="process-type" value="${process}"/>
+    
+    <target name="process-toc-file">
+        
+        <!--Start a time-stamped log. This will append a log with the same date and will 
+        create a new log when the date changes to a new day.-->
+        <tstamp>
+            <format property="PUB-YEAR" pattern="yyyy"/>
+        </tstamp>
+        <tstamp prefix="start"/>
+        <mkdir dir="${log}"/>
+        <property name="log-info" value="${log}\${process}-${start.DSTAMP}-${start.TSTAMP}-info.txt"/>
+        <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+        <echo message="********************"/>
+        <echo message="START LOG"/>
+        <echo message="********************"/>
+        <echo message="START TIME ${start.TSTAMP}"/>
+        <echo message="********************"/>
+        <tstamp>
+            <format property="current-date" pattern="MM/dd/yyyy" locale="en,GB"/>
+        </tstamp>
+        <echo message="---------- This is today's date: ${current-date}"/>
+        <property name="current-process" value="${process}-${start.DSTAMP}-${start.TSTAMP}"/>
+        <sortlist property="sorted-files" value="${inputdirlist}" delimiter=","/>
+        
+        <for list="${sorted-files}" param="batch-toc-path" delimiter=",">
+            <sequential>
+                <var name="issue" unset="true"/>
+                <var name="site" unset="true"/>
+                <var name="source-folder" unset="true"/>
+                <var name="toc-file-name" unset="true"/>
+                <var name="toc-file-with-extension" unset="true"/>
+                <var name="volume" unset="true"/>
+                
+                <echo message="---------- This is the source folder for the article: @{batch-toc-path}"/>
+                
+                <propertyregex 
+                    input="@{batch-toc-path}" 
+                    property="source-folder" 
+                    regexp="(.+)(\\)(.+)" 
+                    replace="\1\2"
+                    global="true"/>
+                
+                <propertyregex 
+                    input="@{batch-toc-path}" 
+                    property="toc-file-with-extension" 
+                    regexp="^(.+)(\\)(.+)(\.)(.+)$" 
+                    replace="\3\4\5"
+                    global="true"/>
+                
+                <propertyregex 
+                    input="@{batch-toc-path}" 
+                    property="toc-file-name" 
+                    regexp="^(.+)(\\)(.+)(\.)(.+)$" 
+                    replace="\3"
+                    global="true"/>
+                
+                <echo message=""/>
+                <echo message="---------- This is the selected toc file: ${toc-file-with-extension}"/>
+                <echo message=""/>
+                <echo message="---------- This is the selected toc file name: ${toc-file-name}"/>
+                
+                <copy file="@{batch-toc-path}" todir="${temp}/${current-process}"/>
+                
+                <xpath file="${temp}/${current-process}/${toc-file-with-extension}"
+                    expression="//MetaIssue/Provider/text()"
+                    outputproperty="site"/>
+                
+                <xpath file="${temp}/${current-process}/${toc-file-with-extension}"
+                    expression="//MetaIssue/@volume"
+                    outputproperty="volume"/>
+                
+                <xpath file="${temp}/${current-process}/${toc-file-with-extension}"
+                    expression="//MetaIssue/@issue"
+                    outputproperty="issue"/>
+                
+                <if>
+                    <equals arg1="${process}" arg2="vissue"/>
+                    <then>
+                        <xslt in="${temp}/${current-process}/${toc-file-with-extension}" 
+                            out="${temp}/${current-process}/${issue}/meta_issue.xml" 
+                            style="xslt/create-vissue-meta-issue.xsl" 
+                            processor="trax">
+                            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                        </xslt>
+                        
+                        <xslt in="${temp}/${current-process}/${toc-file-with-extension}" 
+                            out="${temp}/${current-process}/${issue}/go.xml" 
+                            style="xslt/go-vissue.xsl" 
+                            processor="trax">
+                            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                            <param name="site" expression="${site}"/>
+                            <param name="volume" expression="${volume}"/>
+                            <param name="issue" expression="${issue}"/>
+                        </xslt>
+                        
+                        <xslt in="${temp}/${current-process}/${issue}/meta_issue.xml" 
+                            out="${temp}/${current-process}/${issue}/section_pdf_map.csv" 
+                            style="xslt/create-csv-for-vissue.xsl" 
+                            processor="trax">
+                            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                        </xslt>
+                        
+                        <copy todir="${source-folder}/vissue/${issue}">
+                            <fileset dir="${temp}/${current-process}/${issue}" includes="**/*"/>
+                        </copy>
+                        
+                    </then>
+                </if>
+                
+                <if>
+                    <equals arg1="${process}" arg2="ipad"/>
+                    <then>
+                        <xpath file="${temp}/${current-process}/${toc-file-with-extension}"
+                            expression="//Location/text()"
+                            outputproperty="article-path-list"/>
+                        
+                        <echo message=""/>
+                        <echo message="---------- This is the unsorted article path list: ${article-path-list}"/>
+                        <echo message=""/>
+                        <sortlist property="sorted-article-path-list" value="${article-path-list}" delimiter=","/>
+                        <echo message="---------- This is the sorted article path list: ${sorted-article-path-list}"/>
+                        <echo message=""/>
+                        
+                        <xslt in="${temp}/${current-process}/${toc-file-with-extension}" 
+                            out="${temp}/${current-process}/${issue}/toc.xml" 
+                            style="xslt/create-ipad-toc.xsl" 
+                            processor="trax">
+                            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                        </xslt>
+                        
+                        <!--Sequentially go through each article referenced in TOC then 
+                            transform and package in individual folder with all related files-->
+                        <for list="${sorted-article-path-list}" param="article-path" delimiter=",">
+                            <sequential>
+                                
+                                <var name="article-id" unset="true"/>
+                                <var name="article-doi" unset="true"/>
+                                <var name="article-name" unset="true"/>
+                                <var name="graphics-in-xml" unset="true"/>
+                                <var name="graphics-xml-sorted" unset="true"/>
+                                <var name="graphics-present" unset="true"/>
+                                <var name="article-name" unset="true"/>
+                                <var name="pub-date-epub" unset="true"/>
+                                
+                                <propertyregex input="@{article-path}" 
+                                    property="article-name" 
+                                    regexp="(.+)(\\)(.+)" 
+                                    replace="\3"
+                                    global="true"/>
+                                
+                                <xpath file="@{article-path}/nlmxml/${article-name}.xml"
+                                    expression="//article-id[@pub-id-type='doi']/text()"
+                                    outputproperty="article-id"/>
+                                
+                                <propertyregex input="${article-id}" 
+                                    property="article-doi" 
+                                    regexp="(.+)(\/)(.+)" 
+                                    replace="\3"
+                                    global="true"/>
+                                
+                                <!-- Find graphics in xml and make a list -->
+                                <xpath file="@{article-path}/nlmxml/${article-name}.xml"
+                                    expression="//graphic/@xlink:href"
+                                    outputproperty="graphics-in-xml">
+                                    <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+                                </xpath>
+                                
+                                <sortlist property="graphics-xml-sorted" value="${graphics-in-xml}" delimiter=","/>
+                                
+                                <echo message="---------- This is the list of sorted graphics in the xml: ${graphics-xml-sorted}"/>
+                                
+                                <condition property="graphics-present" else="false">
+                                    <length string="${graphics-xml-sorted}" when="greater" length="0"/>
+                                </condition>
+                                
+                                <!-- Make directory for each article based on its DOI -->
+                                <mkdir dir="${temp}/${current-process}/${issue}/${article-doi}"/>
+                                
+                                <!-- Use Highwire API to get the published file and download file to temp folder to use for publication info -->
+                                <get src="http://api.highwire.org/content?doi=10.1136/${article-doi}&amp;key=C02333C5-913A-46C4-A871-2A832D5EC514" 
+                                    dest="${temp}/${current-process}/${issue}/${article-doi}/${article-doi}-hw-pub-info.xml" />
+                                
+                                <xslt in="@{article-path}/nlmxml/${article-name}.xml" 
+                                    out="${temp}/${current-process}/${issue}/${article-doi}/${article-doi}.xml" 
+                                    style="xslt/convert-for-ipad.xsl" 
+                                    processor="trax">
+                                    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                                    <param name="bmj-doi" expression="${article-doi}"/>
+                                    <param name="full-doi" expression="10.1136/${article-doi}"/>
+                                    <param name="pub-date-epub" expression="${pub-date-epub}"/>
+                                    <param name="temp-article-path" expression="${temp}/${current-process}/${issue}/${article-doi}"/>
+                                    <param name="toc-path" expression="${temp}/${current-process}/${issue}/toc.xml"/>
+                                </xslt>
+                                
+                                <delete file="${temp}/${current-process}/${issue}/${article-doi}/${article-doi}-hw-pub-info.xml"/>
+                                
+                                <if>
+                                    <equals arg1="${graphics-present}" arg2="true"/>
+                                    <then>
+                                        <for list="${graphics-xml-sorted}" param="graphic-xml" delimiter=",">
+                                            <sequential>
+                                                
+                                                <var name="graphic-file-extension" unset="true"/>
+                                                <var name="graphic-file-name" unset="true"/>
+                                                <var name="graphic-temp" unset="true"/>
+                                                <var name="graphic-to-convert" unset="true"/>
+                                                
+                                                <echo message="---------- This is an individual graphic from the xml: @{graphic-xml}"/>
+                                                <mkdir dir="${temp}/${current-process}/${issue}/${article-doi}/assets/to-convert"/>
+                                                <copy todir="${temp}/${current-process}/${issue}/${article-doi}/assets/to-convert">
+                                                    <fileset dir="@{article-path}/graphics" includes="@{graphic-xml}.*"/>
+                                                </copy>
+                                                <fileset dir="${temp}/${current-process}/${issue}/${article-doi}/assets/to-convert" 
+                                                    includes="@{graphic-xml}.*" 
+                                                    id="graphic-temp"/>
+                                                <pathconvert refid="graphic-temp" property="graphic-to-convert"/>
+                                                <echo message="---------- This is the graphic to be converted: ${graphic-to-convert}"/>
+                                                
+                                                <propertyregex 
+                                                    property="graphic-file-name" 
+                                                    input="${graphic-to-convert}" 
+                                                    regexp="(.+)(\\)(.+)(\.)(.+)" 
+                                                    replace="\3" 
+                                                    global="true"/>
+                                                
+                                                <propertyregex 
+                                                    property="graphic-file-extension" 
+                                                    input="${graphic-to-convert}" 
+                                                    regexp="(.+)(\\)(.+)(\.)(.+)" 
+                                                    replace="\4" 
+                                                    global="true"/>
+                                                
+                                                <!-- Convert to JPG for iPad delivery -->
+                                                <echo message="----------"/>
+                                                <echo message="---------- Converting graphic to JPG for iPad delivery..."/>
+                                                <echo message="----------"/>
+                                                <!-- ImageMagick -->
+                                                <exec executable="magick" failonerror="false">
+                                                    <arg value="-density"/>
+                                                    <arg value="300"/>
+                                                    <arg value="${graphic-to-convert}"/>
+                                                    <arg value="-resize"/>
+                                                    <arg value="1000X1000"/>
+                                                    <arg value="-layers"/>
+                                                    <arg value="flatten"/>
+                                                    <arg value="${temp}/${current-process}/${issue}/${article-doi}/assets/${graphic-file-name}.jpg"/>
+                                                </exec>
+                                                <delete dir="${temp}/${current-process}/${issue}/${article-doi}/assets/to-convert"/>
+                                            </sequential>
+                                        </for>
+                                    </then>
+                                </if>
+                            </sequential>
+                        </for>
+                        
+                        <copy todir="${source-folder}/ipad/${issue}">
+                            <fileset dir="${temp}/${current-process}/${issue}" excludes="thumbs.db"/>
+                        </copy>
+                        
+                    </then>
+                </if>
+                
+            </sequential>
+        </for>
+        
+        
+    </target>
+    
+    
+</project>

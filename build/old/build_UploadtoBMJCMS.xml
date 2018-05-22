@@ -1,0 +1,798 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project default="SendtoBMJCMS">
+    
+    <target name="SendtoBMJCMS" depends="check-for-xml"/>
+    
+    <description>
+        Overview:
+        
+        This build is launched after the user selects one of a variety of different publication processes. The process that
+        is selected will determine the publication route the article takes throughout the process with the value being set
+        in the launching batch file as a 'launchedby' property. 
+        
+        The article can either go straight to the CMS or be sent to Highwire Express (this build is imported into this process
+        and run if the value is set in the launching batch file). 
+        
+        The send to Highwire Express can then be either an instant publication (Publish HW Green to Go) or embargoed (Publish HW Embargo),
+        in which case information can be input manually by the user through the command prompt for this will eventually be delivered in 
+        a 'directives.xml' file to instruct Highwire Express to hold the publication. An 'autobatch/picklist' file will also be created
+        if either of these Highwire publication options are chosen (see here for examples)
+        
+        \\bmjprod1\Users\la_bmjprod\dev-test\bmj\uploadtoBMJCMS-test\_autobatch_
+        
+        the autobatch/picklist file contains some simple metadata about the article and the article package such as volume number, 
+        DOI etc., and alsocontains a list of any associated binary files with a relative path. If an embargo process is chosen it
+        will also contain date and time information for the embargo.
+        
+        All files necessary for either upload to the CMS or delivery to Highwire are collected, so the XML is checked for any 
+        references to data supplements or graphics and, if present, these are the searched for in their respective article subfolders 
+        then picked up and packaged along with the XML in
+        
+        \\bmjprod1\Users\la_bmjprod\dev\bmj\uploadtoBMJCMS
+        
+        
+        
+        
+        
+        [0] User selects a folder or multiple folders from the content store once they have a complete, valid article package.
+        The sorted list of folders is set as the property 'sorted-files'.
+        
+        
+        
+        
+        2. User right-clicks on package and selects one of 3 shortcut options when sending to the CMS:
+        ======================
+        == Upload to BMJCMS ==
+        ======================
+        Sends the article package to the UploadtoBMJCMS folder to be picked up and stored in the CMS.
+        
+        ============================
+        == Publish HW Green to Go ==
+        ============================
+        Sends the article to the Upload to BMJCMS folder but creates an autobatch (picklist) file which 
+        instructs HW that this article can be published immediately.
+        
+        ========================
+        == Publish HW Embargo ==
+        ========================
+        Sends the article to the Upload to BMJCMS folder but creates an autobatch (picklist) file which 
+        instructs HW that this article needs to be embargoed.
+        
+        3. User receives a request to enter the volume number of the article. If the article is for embargo they
+        will also receive a request to enter in the embargo date and time.
+        
+        4.
+        
+        
+    </description>
+    
+    <property file="sendtobmjcms.properties"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    <taskdef name="schematron" classname="com.schematron.ant.SchematronTask" classpath="lib/ant-schematron.jar"/>
+    
+    <!-- [0] User selects a folder or multiple folders from the content store once they have a complete, valid article package.
+        The sorted list of folders is set as the property 'sorted-files'. -->
+    <!-- Collect files from xml-in folder -->
+    <fileset dir="${in-pub}\xml" casesensitive="no" id="xml-files">
+        <include name="*.xml"/>
+    </fileset>
+    <pathconvert refid="xml-files" property="sorted-files"/>
+    
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    
+    <property name="log-info" value="${log}/${launchedby}_${time-stamp}.txt"/>
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    <property name="temp-instance" value="${temp}/${launchedby}_${time-stamp}"/>
+    <property name="temp-uploadtobmjcms" value="${temp-instance}/uploadtoBMJCMS"/>
+    
+    <mkdir dir="${temp-instance}"/>
+    
+    <echo message="&#x000D;"/>
+    <echo message="These are the selected files:"/>
+    <echo message="&#x000D;"/>
+    <echo message="${sorted-files}"/>
+    <echo message="&#x000D;"/>
+    <echo message="This article was launched by:"/>
+    <echo message="&#x000D;"/>
+    <echo message="${launchedby}"/>
+    
+    <echo message="&#x000D;"/>
+    <echo message="Checking which process has been selected..."/>
+    <echo message="&#x000D;"/>
+    <import file="build_send_to_highwire.xml"/>
+    <import file="build_send_to_pmc.xml"/>
+    
+    <!-- [1] When the property 'publishtohwx' is set from the launching batch file this askes the user to enter information related
+    to the publication. For Green to Go this will just ask for volume number but for embargo this will ask for a date and time to
+    set for the embargo.-->
+    <!-- ========================================================== -->
+    <!-- ======= Switches for HW Green to Go and HW Embargo ======= -->
+    <!-- ========================================================== -->
+    <switch value="${publishtohwx}">
+        <!-- Check if article is to be sent to Highwire Express -->
+        <case value="true">
+            <if>
+                <equals arg1="${embargo-set}" arg2="y"/>
+                <!-- Test to see whether this is to be embargoed -->
+                <then>
+                    <tstamp>
+                        <format property="def.pub.time" pattern="HH:mm" offset="2" unit="hour"/>
+                    </tstamp>
+                    <tstamp>
+                        <format property="now.time" pattern="HH:mm"/>
+                    </tstamp>
+                    <!-- Sets embargo.data-string and embargo.time-string for the build-->
+                    <switch value="${embargo-set}">
+                        <case value="y">
+                            <echo message="&#x000D;"/>
+                            <echo message="========== You have selected 'PUBLISH TO HWX WITH EMBARGO' =========="/>
+                            <input message="&#x0A;Enter embargo date: DD/MM/YYYY:" 
+                                addproperty="original-date-string" defaultvalue="">
+                                <handler type="default"/>
+                            </input>
+                            <echo message="====================================================================="/>
+                            <if>
+                                <matches pattern="^(\d{2})(\/)(\d{2})(\/)(\d{4})$" string="${original-date-string}"/>
+                                <then>
+                                    <property value="${original-date-string}" name="valid-date-string"/>
+                                    <echo message="---------- This is the validated date string for embargo: ${valid-date-string}"/>
+                                    <echo message="====================================================================="/>
+                                </then>
+                                <else>
+                                    <fail message="Your date should be in the following format DD/MM/YYYY.&#x000A;This is what you entered: ${original-date-string}.&#x000A;Please run again and enter the date in the correct format."/>
+                                </else>
+                            </if>
+                            <input message="&#x0A;Enter embargo time hh:mm :" addproperty="embargo.time-string"
+                                defaultvalue="23:30">
+                                <handler type="default"/>
+                            </input>
+                            <echo message="====================================================================="/>
+                            <input 
+                                message="This batch will be embargoed until [${valid-date-string}] at [${embargo.time-string}]. Are the embargo date and time correct?"
+                                validargs="y,n"
+                                addproperty="cancel">
+                                <handler type="default"/>
+                            </input>
+                            <echo message="====================================================================="/>
+                            <condition property="abort">
+                                <equals arg1="n" arg2="${cancel}"/>
+                            </condition>
+                            <fail if="abort">Process cancelled. Please start process again and enter correct embargo date.</fail>
+                            
+                        </case>
+                    </switch>
+                </then>
+                <!-- If not for embargo then this is for publication straight to HWX -->
+                <else>
+                    <echo message="&#x000D;"/>
+                    <echo message="========== You have selected 'PUBLISH TO HWX GREEN TO GO' =========="/>
+                    <echo message="&#x000D;"/>
+                    <tstamp>
+                        <format property="valid-date-string" pattern="dd/MM/yyyy"/>
+                    </tstamp>
+                    <echo message="---------- This is the validated date string for G2G: ${valid-date-string}"/>
+                </else>
+            </if>
+            
+            <!-- Date entered -->
+            <propertyregex input="${valid-date-string}" regexp="^(\d+)(\/)(\d+)(\/)(\d+)$" replace="\5" property="valid-year"/>
+            <echo message="---------- This is the year from the validated date string: ${valid-year}"/>
+            <propertyregex input="${valid-date-string}" regexp="^(\d+)(\/)(\d+)(\/)(\d+)$" replace="\3" property="valid-month"/>
+            <echo message="---------- This is the month from the validated date string: ${valid-month}"/>
+            
+            <!-- Date range is mapped in the following XML file \\bmjprod1\Users\la_bmjprod\dev\bmj\xml\volume-date-mapper.xml. 
+            The date range runs up until 2025 so any future-->
+            
+            <xpath 
+                file="${xml}/volume-date-mapper.xml"
+                expression="//volume-date-ranges/year[@year='${valid-year}']/month[@month='${valid-month}']/volume/text()"
+                outputproperty="volume.number" />
+            <echo message="---------- This is the matched volume number based on the date entered: ${volume.number}"/>
+            
+        </case>
+        <default/>
+    </switch>
+    
+    <echo message="---------- This is the embargo date before getting into autobatch: ${valid-date-string}"/>
+    
+    
+    <!-- Checking that NLM XML is available in package. Continues to process batch if it is, fails if it isn't. -->
+    <target name="check-for-xml">
+        
+        <echo message="&#x000D;"/>
+        <echo message="Checking that NLM XML is available..."/>
+        <echo message="&#x000D;"/>
+        
+        <for list="${sorted-files}" param="dir">
+            <sequential>
+                
+                <!-- REMEMBER TO UNSET ALL THE VARIABLES FOR THE SEQUENTIAL LOOP. ALL FURTHER TARGETS ARE AFFECTED! -->
+                <!-- ============================== -->
+                <var name="abridged" unset="true"/>
+                <var name="article-doi" unset="true"/>
+                <var name="article-journal" unset="true"/>
+                <var name="article-name" unset="true"/>
+                <var name="article-path" unset="true"/>
+                <var name="article-section" unset="true"/>
+                <var name="autobatch-dir-present" unset="true"/>
+                <var name="autobatch-file-present" unset="true"/>
+                <var name="autobatch-present" unset="true"/>
+                <var name="autobatch-filepaths" unset="true"/>
+                <var name="autobatch-files" unset="true"/>
+                <var name="data-supp-file" unset="true"/>
+                <var name="data-supps-available" unset="true"/>
+                <var name="data-supp-description" unset="true"/>
+                <var name="data-supps-dir-present" unset="true"/>
+                <var name="data-supp-text" unset="true"/>
+                <var name="data-supps-xml" unset="true"/>
+                <var name="data-supps-xml-sorted" unset="true"/>
+                <var name="graphics-available" unset="true"/>
+                <var name="graphics-dir-present" unset="true"/>
+                <var name="graphic-file" unset="true"/>
+                <var name="graphics-store" unset="true"/>
+                <var name="graphics-xml" unset="true"/>
+                <var name="graphics-xml-sorted" unset="true"/>
+                <var name="message" unset="true"/>
+                <var name="not-published" unset="true"/>
+                <var name="oa" unset="true"/>
+                <var name="open-access" unset="true"/>
+                <var name="pdf-available" unset="true"/>
+                <var name="pdfs" unset="true"/>
+                <var name="peid" unset="true"/>
+                <var name="ppr-volume" unset="true"/>
+                <!-- ============================== -->
+                
+                <propertyregex input="@{dir}" regexp="^(.+)(\\)(.+)" replace="\1\2\3" property="article-path"/>
+                
+                <echo message="&#x000D;"/>
+                <echo message="Found this source filepath:"/>
+                <echo message="&#x000D;"/>
+                <echo message="========== ${article-path}"/>
+                
+                <propertyregex input="@{dir}" regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" replace="\4" property="article-name"/>
+                
+                <echo message="&#x000D;"/>
+                <echo message="Found this source filename:"/>
+                <echo message="&#x000D;"/>
+                <echo message="========== ${article-name}"/>
+                
+                <if>
+                    <available file="${article-path}/jats-xml/${article-name}.xml"/>
+                    <then>
+                        
+                        <!-- Check for any fails in the QA HTML -->
+                        <xpath 
+                            file="${article-path}/qa/${article-name}-QA-report.html" 
+                            expression="//td/text()[contains(.,'Fail')]" 
+                            outputproperty="fail" />
+                        <echo message="---------- Has this article failed QA? ${fail}"/>
+                        <if>
+                            <contains string="${fail}" substring="Fail"/>
+                            <then>
+                                <echo message=""/>
+                                <echo message=""/>
+                                <echo message="===================================================="/>
+                                <echo message="===================================================="/>
+                                <echo message=""/>
+                                <echo message="THIS ARTICLE (${article-path}) HAS NOT PASSED QA!!"/>
+                                <echo message=""/>
+                                <echo message="CHECK QA REPORT AND CORRECT ALL REPORTED ERRORS FOR THIS ARTICLE!!"/>
+                                <echo message=""/>
+                                <echo message="===================================================="/>
+                                <echo message="===================================================="/>
+                                <echo message=""/>
+                                <echo message=""/>
+                                <exec executable="cmd" spawn="true" >
+                                    <arg value="/c"/>
+                                    <arg value="${article-path}/qa/${article-name}-QA-report.html"/>
+                                </exec>
+                                <fail/>
+                            </then>
+                        </if>
+                        
+                        <runtarget target="collect"/>
+                        
+                    </then>
+                    <else>
+                        <echo message="&#x000D;"/>
+                        <fail message="========== No XML available in ${article-path}\nlmxml"/>
+                        <echo message="&#x000D;"/>
+                    </else>
+                </if>
+                
+            </sequential>
+        </for>
+    </target>
+    
+    <target name="collect">
+        
+        <!-- ====================== -->
+        <!-- Information collecting -->
+        <!-- ====================== -->
+        
+        <xpath file="${article-path}/jats-xml/${article-name}.xml" 
+            expression="//article-id[@pub-id-type='doi']/text()" 
+            outputproperty="article-id-doi"/>
+        <echo message="&#x000D;"/>
+        <echo message="========== This is the article DOI: ${article-id-doi} =========="/>
+        <echo message="&#x000D;"/>
+        
+        <xpath file="${article-path}/jats-xml/${article-name}.xml" 
+            expression="//elocation-id/text()" 
+            outputproperty="elocator"/>
+        <echo message="&#x000D;"/>
+        <echo message="========== This is the elocator: ${elocator} =========="/>
+        <echo message="&#x000D;"/>
+        
+        
+        <xpath file="${article-path}/jats-xml/${article-name}.xml"
+               expression="//journal-id[@journal-id-type='nlm-ta']/text()"
+               outputproperty="journal-id-nlm-ta"/>
+        <echo message="&#x000D;"/>
+        <echo message="========== This is the NLM journal ID: ${journal-id-nlm-ta} =========="/>
+        <echo message="&#x000D;"/>
+        
+        <xpath file="${article-path}/jats-xml/${article-name}.xml"
+                expression="//subj-group[@subj-group-type='heading']/subject[1]/text()"
+                outputproperty="art-section"/>
+        <echo message="&#x000D;"/>
+        <echo message="========== This is the article section: ${art-section} =========="/>
+        <echo message="&#x000D;"/>
+        
+        <xslt in="${article-path}/jats-xml/${article-name}.xml" out="${temp-uploadtobmjcms}/alt-values/${article-name}-alt-values.xml"
+              style="${xslt}/alt-values.xsl" processor="trax" force="true"
+              extension=".xml">
+            <param name="article-section" expression="${art-section}"/>
+            <param name="journal-nlm" expression="${journal-id-nlm-ta}"/>
+            <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+        </xslt>
+        
+        <xpath file="${temp-uploadtobmjcms}/alt-values/${article-name}-alt-values.xml" 
+            expression="//article/journal/text()" 
+            outputproperty="article-journal"/>
+        <echo message="&#x000D;"/>
+        <echo message="========== This is the article journal: ${article-journal} ==========="/>
+        <echo message="&#x000D;"/>
+        
+        <xpath file="${temp-uploadtobmjcms}/alt-values/${article-name}-alt-values.xml" 
+            expression="//article/section/text()" 
+            outputproperty="article-section"/>
+        <echo message="&#x000D;"/>
+        <echo message="========== This is the article section type: ${article-section} ==========="/>
+        <echo message="&#x000D;"/>
+        
+        <!-- =========================== -->
+        <!-- Switch for Post Prod Resend -->
+        <!-- =========================== -->
+        
+        <!-- Check if article is a Post Production Resend.
+        ===============================================
+        - If false, continue to next switch.
+        - If true, check to see if published.
+        - If published, get information from Highwire Express, 
+          download info file and extract peid then run target 
+          post-prod-resend.
+        - If not published then fail with message.
+        =============================================== -->
+        <switch value="${ppr}">
+            <case value="true">
+                <echo message="&#x000D;"/>
+                <echo message="========== You have selected the 'POST PROD RESEND' process =========="/>
+                <echo message="&#x000D;"/>
+                <echo message="Check to see if full version of ${article-id-doi} is published"/>
+                
+                <mkdir dir="${temp-instance}/api-responses"/>
+                    
+                <!-- Get the Highwire lookup DOI and download file to temp folder -->
+                <get src="https://production.highwire.org/hwxcgi/PeidLookup.cgi?sitecode=bmj&amp;doi=${article-id-doi}" 
+                     dest="${temp-instance}/api-responses/peid_lookup-${article-name}.xml" verbose="true" username="hwxbmj" password="r1veRRun"/>
+                
+                <!-- Use Highwire API to get the date of the published article -->
+                <get src="http://api.highwire.org/content?doi=${article-id-doi}&amp;key=C02333C5-913A-46C4-A871-2A832D5EC514" 
+                     dest="${temp-instance}/api-responses/highwire-date-${article-name}.xml" verbose="true"/>
+                            
+                <!-- Check messages to see if published -->
+                <xpath file="${temp-instance}/api-responses/peid_lookup-${article-name}.xml" 
+                       expression="//messages/text()" 
+                       outputproperty="message"/>
+                
+                <!-- Get published date from API response XML -->
+                <!-- Get day -->
+                <xpath file="${temp-instance}/api-responses/highwire-date-${article-name}.xml" 
+                       expression="//nlm:pub-date[@pub-type='epub']/nlm:day/text()" 
+                       outputproperty="highwire-pub-day">
+                    <namespace prefix="xlink" uri="http://www.w3.org/2005/Atom"/>
+                    <namespace prefix="nlm" uri="http://schema.highwire.org/NLM/Journal"/>
+                </xpath>
+                <echo message="---------- This is the Highwire pub day: ${highwire-pub-day}"/>
+                <!-- Get month -->
+                <xpath file="${temp-instance}/api-responses/highwire-date-${article-name}.xml" 
+                       expression="//nlm:pub-date[@pub-type='epub']/nlm:month/text()" 
+                       outputproperty="highwire-pub-month">
+                    <namespace prefix="xlink" uri="http://www.w3.org/2005/Atom"/>
+                    <namespace prefix="nlm" uri="http://schema.highwire.org/NLM/Journal"/>
+                </xpath>
+                <echo message="---------- This is the Highwire pub month: ${highwire-pub-month}"/>
+                <!-- Get year -->
+                <xpath file="${temp-instance}/api-responses/highwire-date-${article-name}.xml" 
+                       expression="//nlm:pub-date[@pub-type='epub']/nlm:year/text()" 
+                       outputproperty="highwire-pub-year">
+                    <namespace prefix="xlink" uri="http://www.w3.org/2005/Atom"/>
+                    <namespace prefix="nlm" uri="http://schema.highwire.org/NLM/Journal"/>
+                </xpath>
+                <echo message="---------- This is the Highwire pub year: ${highwire-pub-year}"/>
+                <echo message="&#x000D;"/>
+                <echo message="This is the message found: ${message}"/>
+                <echo message="&#x000D;"/>
+                            
+                            
+                <!-- Extract the peid from the downloaded XML -->
+                <xpath file="${temp-instance}/api-responses/peid_lookup-${article-name}.xml" 
+                       expression="//peid/text()" 
+                       outputproperty="peid"/>
+                
+                <echo message="&#x000D;"/>
+                <propertyregex input="${peid}" regexp="^(bmj)(\_)(arts)(\_)(\d+)(\_)(\w+)(\_)(.+)" replace="\5" property="ppr-volume"/>
+                <echo message="========== This is the ppr volume ${ppr-volume}"/>
+                <property name="volume.number" value="${ppr-volume}"/>
+                <property value="${highwire-pub-day}/${highwire-pub-month}/${highwire-pub-year}" name="valid-date-string"/>
+                            
+                <if>
+                    <equals arg1="${message}" arg2="DOI not found."/>
+                        <then>
+                        <echo message="&#x000D;"/>
+                        <echo message="=============== THIS ARTICLE IS NOT PUBLISHED! ==============="/>
+                        <echo message="&#x000D;"/>
+                        <echo message="==================== ${article-id-doi} ======================="/>
+                        <echo message="&#x000D;"/>
+                        <echo message="======== CANNOT DO A POST PROD RESEND ON THIS ARTICLE ========"/>
+                        <echo message="&#x000D;"/>
+                        <echo message="================ PLEASE SELECT ANOTHER PROCESS ==============="/>
+                        <echo message="&#x000D;"/>
+                        <fail/>
+                    </then>
+                </if>
+            </case>
+            <default/>
+        </switch>
+        
+        
+        
+        <!-- =============== -->
+        <!-- File collecting -->
+        <!-- =============== -->
+        
+        <!-- XML collecting -->
+        <!-- Check to see whether article is abridged. If abridged, article is placed in 'abridged' folder. -->
+        <condition property="abridged">
+            <matches string="${article-name}" pattern="^\d+\w+"/>
+        </condition>
+        <echo message="========== Abridged is set? ${abridged}"/>
+        <if>
+            <isset property="abridged"/>
+            <then>
+                <copy file="${article-path}/jats-xml/${article-name}.xml" 
+                    tofile="${temp-uploadtobmjcms}/abridged/${article-journal}/${article-section}/bmj.${elocator}.xml"/>
+            </then>
+            <else>
+                <copy file="${article-path}/jats-xml/${article-name}.xml" 
+                    tofile="${temp-uploadtobmjcms}/${article-journal}/${article-section}/bmj.${elocator}.xml"/>
+            </else>
+        </if>
+        
+        <!--Data supp collecting-->
+        <!--Checks article XML for any data supplement references then looks for corresponding graphics in the data-supps folder if so-->
+        <xpath file="${article-path}/jats-xml/${article-name}.xml" expression="//supplementary-material/media/@xlink:href" outputproperty="data-supps-xml">
+            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+        </xpath>
+        
+        
+        <sortlist property="data-supps-xml-sorted" value="${data-supps-xml}" delimiter=","/>
+        <echo message="----------This is the list of sorted data-supps: ${data-supps-xml-sorted}"/>
+        
+        <condition property="data-supps-available">
+            <length string="${data-supps-xml-sorted}" when="greater" length="0"/> 
+        </condition>
+        <echo message="---------- Are there data supps available? ${data-supps-available}"/>
+        
+        <if>
+            <isset property="data-supps-available"/>
+            <then>
+                
+                <xpath file="${temp-uploadtobmjcms}/${article-journal}/${article-section}/bmj.${elocator}.xml" 
+                            expression="//notes/supplementary-material/caption//text()" outputproperty="data-supp-description"/>
+                
+                <xpath file="${temp-uploadtobmjcms}/${article-journal}/${article-section}/bmj.${elocator}.xml" 
+                            expression="//notes/label/text()" outputproperty="data-supp-text"/>
+                
+                <mkdir dir="${temp-uploadtobmjcms}/data-supps/bmj.${elocator}"/>
+                <!-- Create static XML file for each article to insert list of data supplements found in the folder -->
+                <echoxml file="${temp-uploadtobmjcms}/data-supps/bmj.${elocator}/manifest.xml">
+                    <datasupp sitecode="bmj">
+                        <resource type="doi">${article-id-doi}</resource>
+                        <linktext>${data-supp-text}</linktext>
+                        <title>${data-supp-text}</title>
+                    </datasupp>
+                </echoxml>
+                <for list="${data-supps-xml-sorted}" param="data-supp-xml">
+                    <sequential>
+                        <var name="data-supp-description" unset="true"/>
+                        <var name="data-supp-file" unset="true"/>
+                        <var name="data-supp-found" unset="true"/>
+                        <var name="data-supp-in-folder" unset="true"/>
+                        <var name="data-supp-text" unset="true"/>
+                        
+                        <echo message="----------This is the location of the data supps for the article ${article-path}\data-supp"/>
+                        
+                        <echo message="----------This data supp was found in the XML: @{data-supp-xml}"/>
+                        
+                        <fileset dir="${article-path}\data-supp" id="data-supp-found">
+                            <include name="**\@{data-supp-xml}.*"/>
+                        </fileset>
+                        
+                        <pathconvert refid="data-supp-found" property="data-supp-in-folder"/>
+                        
+                        <echo message="----------This is the data supp path: ${data-supp-in-folder}"/>
+                        
+                        <propertyregex input="${data-supp-in-folder}" 
+                            regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" 
+                            replace="\4" 
+                            property="data-supp-file"/>
+                        
+                        <echo message="&#x000D;"/>
+                        <echo message="========== This is the individual data supp file ${data-supp-file} ==========="/>
+                        <echo message="&#x000D;"/>
+                        
+                        
+                        <echo message="---------------------------------------------------"/>
+                        <echo message="----------Create manifest file for data supplements"/>
+                        <echo message="---------------------------------------------------"/>
+                        
+                        <xpath file="${temp-uploadtobmjcms}/${article-journal}/${article-section}/bmj.${elocator}.xml" 
+                            expression="//notes/supplementary-material[media[@xlink:href='@{data-supp-xml}']]/caption/p//text()" 
+                            outputproperty="data-supp-description" delimiter="">
+                            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+                        </xpath>
+                        <echo message="//notes/supplementary-material[@xlink:href='@{data-supp-xml}']/caption/p//text()"/>
+                        
+                        <echo message="----------This is the data supp description: ${data-supp-description}"/>
+                        
+                        <!-- Append data supplement manifest file with list of data supp files found in the folder -->
+                        <xmltask source="${temp-uploadtobmjcms}\data-supps\bmj.${elocator}\manifest.xml" 
+                                   dest="${temp-uploadtobmjcms}\data-supps\bmj.${elocator}\manifest.xml" 
+                                   encoding="utf-8"
+                                   expandEntityReferences="false">
+                            <insert path="/datasupp" >
+                                <![CDATA[<file><filename>${data-supp-file}</filename><description>${data-supp-description}</description></file>]]>
+                            </insert>
+                        </xmltask>
+                        <echo 
+                            file="${temp-uploadtobmjcms}\data-supps\supps-in-folder.txt" 
+                            append="true" 
+                            message="${data-supp-file},"/>
+                        <copy file="${data-supp-in-folder}" todir="${temp-uploadtobmjcms}\data-supps\bmj.${elocator}"/>
+                    </sequential>
+                </for>
+                
+            </then>
+        </if>
+        
+        
+        <!--Graphics collecting-->
+        <!--Checks article XML for any graphic file references then looks for corresponding graphics in the graphics folder if so-->
+        <xpath file="${article-path}/jats-xml/${article-name}.xml" expression="//graphic/@xlink:href" outputproperty="graphics-xml">
+            <namespace prefix="xlink" uri="http://www.w3.org/1999/xlink"/>
+        </xpath>
+        <sortlist property="graphics-xml-sorted" value="${graphics-xml}" delimiter=","/>
+        <echo message="----------This is the list of sorted graphics ${graphics-xml-sorted}"/>
+        
+        <condition property="graphics-available">
+            <length string="${graphics-xml-sorted}" when="greater" length="0"/> 
+        </condition>
+        <echo message="----------This graphic file was found in the XML: ${graphics-available}"/>
+        
+        
+        <!-- Checking whether graphics are included with the package or whether to check the main graphics store -->
+        <if>
+            <available file="${article-path}\graphics" type="dir"/>
+            <then>
+                <property name="graphics-store" value="${article-path}\graphics"/>
+            </then>
+            <else>
+                <property name="graphics-store" value="${graphics-store-main}"/>
+            </else>
+        </if>
+        <echo message="---------- This is where the graphics should be are based upon checks: ${graphics-store}"/>
+        
+        <if>
+            <isset property="graphics-available"/>
+            <then>
+                <for list="${graphics-xml-sorted}" param="graphic-file-xml">
+                    <sequential>
+                        <var name="graphic-file" unset="true"/>
+                        <var name="graphic-in-folder" unset="true"/>
+                        <var name="graphic-file-folder" unset="true"/>
+                        <fileset dir="${graphics-store}" id="graphic-found">
+                            <include name="**/@{graphic-file-xml}.*"/>
+                        </fileset>
+                        <pathconvert refid="graphic-found" property="graphic-in-folder"/>
+                        <echo message="---------- This is the path to the graphic in the folder: ${graphic-in-folder}"/>
+                        <propertyregex input="${graphic-in-folder}" 
+                            regexp="^.*?([^\\]+)\\([^\\]+)\\([^\\]+)\\([^\\]+)$" 
+                            replace="\4" 
+                            property="graphic-file"/>
+                        <echo message="&#x000D;"/>
+                        <echo message="========== This is the individual graphic file ${graphic-file} ==========="/>
+                        <echo message="&#x000D;"/>
+                        <copy file="${graphic-in-folder}" todir="${temp-uploadtobmjcms}\graphics"/>
+                        <echo 
+                            file="${temp-uploadtobmjcms}\graphics\graphics-in-folder.txt" 
+                            append="true" 
+                            message="${graphic-file},"/>
+                    </sequential>
+                </for>
+            </then>
+        </if>
+        
+        <!-- PDF collecting -->
+        <if>
+            <available file="${article-path}/pdf"/> 
+            <then>
+                <fileset dir="${article-path}/pdf" id="pdf-found">
+                    <include name="*.pdf"/>
+                </fileset>
+                <pathconvert refid="pdf-found" property="pdfs"/>
+                <echo message="---------- These are the PDFs found! :) ${pdfs}"/>
+                <condition property="pdf-available">
+                    <length string="${pdfs}" when="greater" length="0"/> 
+                </condition>
+            </then>
+        </if>
+        
+        <if>
+            <isset property="pdf-available"/>
+            <then>
+                <copy tofile="${temp-uploadtobmjcms}/pdfs/bmj.${elocator}.pdf">
+                    <fileset dir="${article-path}/pdf">
+                        <include name="*.pdf"/>
+                    </fileset>
+                </copy>
+            </then>
+        </if>
+        
+        <!-- Creating autobatch file for Green to Go or Embargo -->
+        <switch value="${publishtohwx}">
+            <case value="true">
+                <echo message="---------- This is the embargo date before getting into autobatch: ${valid-date-string}"/>
+                <xslt in="${article-path}/jats-xml/${article-name}.xml"
+                    out="${temp-uploadtobmjcms}/_autobatch_/bmj.${elocator}.xml"
+                    style="${xslt}/autobatch.xsl" processor="trax" force="true"
+                    extension=".xml">
+                    <param name="abridged-set" expression="${abridged}"/>
+                    <param name="art-journal" expression="${article-journal}"/>
+                    <param name="art-section" expression="${article-section}"/>
+                    <param name="doi" expression="${article-id-doi}"/>
+                    <param name="eloc" expression="${elocator}"/>
+                    <param name="embargo-set" expression="${embargo-set}"/>
+                    <param name="embargo-date" expression="${valid-date-string}"/>
+                    <param name="embargo-time" expression="${embargo.time-string}"/>
+                    <param name="volume" expression="${volume.number}"/>
+                    
+                    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                    
+                </xslt>
+            </case>
+            <default/>
+        </switch>
+        
+        <!-- Creating autobatch file for PPR -->
+        <switch value="${ppr}">
+            <case value="true">
+                <xslt in="${article-path}/jats-xml/${article-name}.xml"
+                    out="${temp-uploadtobmjcms}/_autobatch_/bmj.${elocator}.xml"
+                    style="${xslt}/autobatch.xsl" processor="trax" force="true"
+                    extension=".xml">
+                    <param name="abridged-set" expression="${abridged}"/>
+                    <param name="art-journal" expression="${article-journal}"/>
+                    <param name="art-section" expression="${article-section}"/>
+                    <param name="doi" expression="${article-id-doi}"/>
+                    <param name="eloc" expression="${elocator}"/>
+                    <param name="ppr-set" expression="${ppr}"/>
+                    <param name="pe-id" expression="${peid}"/>
+                    <param name="ppr-vol" expression="${ppr-volume}"/>
+                    <param name="volume" expression="${volume.number}"/>
+                    <factory name="net.sf.saxon.TransformerFactoryImpl"/>
+                </xslt>
+            </case>
+            <default/>
+        </switch>
+        <runtarget target="copy-to-uploadtoBMJCMS"/>
+    </target>
+    
+    
+    <target name="copy-to-uploadtoBMJCMS">
+        
+        <copy todir="${uploadtoBMJCMS}">
+            <fileset dir="${temp-uploadtobmjcms}">
+                <include name="${article-journal}/${article-section}/*.*"/>
+            </fileset>
+        </copy>
+        
+        <if>
+            <isset property="abridged"/>
+            <then>
+                <copy todir="${uploadtoBMJCMS}">
+                    <fileset dir="${temp-uploadtobmjcms}">
+                        <include name="abridged/${article-journal}/${article-section}/*.*"/>
+                    </fileset>
+                </copy>
+            </then>
+        </if>
+        
+        <condition property="graphics-dir-present">
+            <available file="${temp-uploadtobmjcms}/graphics" type="dir"/>
+        </condition>
+        
+        <echo message="---------- Is the graphics directory present? ${graphics-dir-present}"/>
+        
+        <if>
+            <isset property="graphics-dir-present"/>
+            <then>
+                <copy todir="${uploadtoBMJCMS}/graphics">
+                    <fileset dir="${temp-uploadtobmjcms}/graphics">
+                        <exclude name="graphics-in-folder.txt"/>
+                    </fileset>
+                </copy>
+            </then>
+        </if>
+        
+        <condition property="data-supps-dir-present">
+            <available file="${temp-uploadtobmjcms}/data-supps/bmj.${elocator}" type="dir"/>
+        </condition>
+        
+        <echo message="---------- Is the data-supp directory present? ${data-supps-dir-present}"/>
+        
+        <if>
+            <isset property="data-supps-dir-present"/>
+            <then>
+                <copy todir="${uploadtoBMJCMS}/data-supps">
+                    <fileset dir="${temp-uploadtobmjcms}/data-supps/bmj.${elocator}">
+                        <include name="*.pdf"/>
+                    </fileset>
+                </copy>
+            </then>
+        </if>
+        
+        <condition property="autobatch-file-present">
+            <available file="${temp-uploadtobmjcms}/_autobatch_/bmj.${elocator}.xml" type="file"/>
+        </condition>
+        
+        <echo message="Autobatch file is present? ${autobatch-file-present}"/>
+        
+        <!-- Check to see if autobatch file is present then send to Highwire if true-->
+        <if>
+            <isset property="autobatch-file-present"/>
+            <then>
+                <echo message="---------- AUTOBATCH DIR IS PRESENT!! WILL START COPYING OVER THE AUTOBATCH FILE FOR THIS ARTICLE!!!"/>
+                <copy todir="${uploadtoBMJCMS}/_autobatch_">
+                    <fileset dir="${temp-uploadtobmjcms}/_autobatch_">
+                        <include name="bmj.${elocator}.xml"/>
+                    </fileset>
+                </copy>
+                <delete file="${temp-uploadtobmjcms}/_autobatch_/bmj.${elocator}.xml"/>
+                <runtarget target="send-to-hw"/>
+                <runtarget target="send-to-pmc"/>
+            </then>
+        </if>
+    </target>
+    
+    
+</project>

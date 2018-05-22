@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet 
+    version="2.0" 
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <xsl:output method="xml" indent="yes"/>
+    
+    <xsl:strip-space elements="*"/>
+    
+    <xsl:param name="graphic-files-in-folder"/>
+    <xsl:param name="vol"/>
+    <xsl:param name="elocator-bmj"/>
+    <xsl:param name="embargo-set"/>
+    <xsl:param name="date"/>
+    <xsl:param name="day"/>
+    <xsl:param name="month"/>
+    <xsl:param name="year"/>
+    <xsl:param name="time"/>
+    <xsl:param name="launched-by"/>
+    <xsl:param name="supp-files-in-folder"/>
+    <xsl:param name="valid-date-string"/>
+    
+    <xsl:template match="@*|node()">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="article">
+        <xsl:text disable-output-escaping="yes" xml:space="default"><![CDATA[<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.1 20151215//EN"
+"JATS-journalpublishing1.dtd">]]>
+        </xsl:text>
+        <xsl:element name="article">
+            <xsl:namespace name="mml">http://www.w3.org/1998/Math/MathML</xsl:namespace>
+            <xsl:namespace name="xlink">http://www.w3.org/1999/xlink</xsl:namespace>
+            <xsl:namespace name="xsi">http://www.w3.org/2001/XMLSchema-instance</xsl:namespace>
+            <xsl:copy-of select="@article-type"/>
+            <xsl:copy-of select="@xml:lang"/>
+            <xsl:apply-templates/>
+        </xsl:element>
+    </xsl:template>
+    
+    <xsl:template match="//article-meta/volume">
+        <volume>
+            <xsl:value-of select="$vol"/>
+        </volume>
+    </xsl:template>
+    
+    <!-- Add file extension to graphic reference in the XML -->
+    <xsl:template match="graphic/@xlink:href">
+        <xsl:variable name="graphic-xml" select="."/>
+        <xsl:analyze-string select="$graphic-files-in-folder" regex="({$graphic-xml}.*?)($|,)">
+            <xsl:matching-substring>
+                    <xsl:attribute name="xlink:href">
+                        <xsl:value-of select="regex-group(1)"/>
+                    </xsl:attribute>
+            </xsl:matching-substring>
+        </xsl:analyze-string>
+    </xsl:template>
+    
+    <!-- Add file extension to data supplement reference in the XML -->
+    <xsl:template match="supplementary-material/media/@xlink:href">
+        <xsl:variable name="supp-xml" select="."/>
+        <xsl:analyze-string select="$supp-files-in-folder" regex="({$supp-xml}.*?)($|,)">
+            <xsl:matching-substring>
+                    <xsl:attribute name="xlink:href">
+                        <xsl:value-of select="regex-group(1)"/>
+                    </xsl:attribute>
+            </xsl:matching-substring>
+        </xsl:analyze-string>
+    </xsl:template>
+    
+    <!-- Add self-uri for PDF -->
+    <xsl:template match="permissions">
+        <xsl:copy-of select="."/>
+        <xsl:element name="self-uri">
+            <xsl:attribute name="xlink:href">
+                <xsl:value-of select="$elocator-bmj"/>
+                <xsl:text>.pdf</xsl:text>
+            </xsl:attribute>
+            <xsl:attribute name="xlink:title">
+                <xsl:text>pdf</xsl:text>
+            </xsl:attribute>
+        </xsl:element>
+    </xsl:template>
+    
+    
+    <!-- Dates -->
+    <xsl:template match="pub-date[@pub-type='epub'][not(preceding-sibling::pub-date[@pub-type='collection'])]">
+        <xsl:element name="pub-date">
+            <xsl:attribute name="pub-type">
+                <xsl:text>collection</xsl:text>
+            </xsl:attribute>
+            <xsl:if test="$embargo-set = 'y'">
+                <xsl:element name="year">
+                    <xsl:value-of select="$year"/>
+                </xsl:element>
+            </xsl:if>
+            <xsl:if test="$embargo-set = 'n'">
+                <xsl:element name="year">
+                    <xsl:value-of select="$year"/>
+                </xsl:element>
+            </xsl:if>
+        </xsl:element>
+        
+        <xsl:if test="$embargo-set = 'y'">
+            <xsl:element name="pub-date">
+                <xsl:copy-of select="@*"/>
+                <xsl:element name="day">
+                    <xsl:value-of select="$day"/>
+                </xsl:element>
+                <xsl:element name="month">
+                    <xsl:value-of select="$month"/>
+                </xsl:element>
+                <xsl:element name="year">
+                    <xsl:value-of select="$year"/>
+                </xsl:element>
+            </xsl:element>
+        </xsl:if>
+        
+        <xsl:if test="$embargo-set = 'n'">
+            <xsl:choose>
+                <xsl:when test="$launched-by = 'ppr'">
+                    <xsl:element name="pub-date">
+                        <xsl:copy-of select="@*"/>
+                        <xsl:element name="day">
+                            <xsl:value-of select="$day"/>
+                        </xsl:element>
+                        <xsl:element name="month">
+                            <xsl:value-of select="$month"/>
+                        </xsl:element>
+                        <xsl:element name="year">
+                            <xsl:value-of select="$year"/>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:element name="pub-date">
+                        <xsl:copy-of select="@*"/>
+                        <xsl:element name="day">
+                            <xsl:value-of select="$day"/>
+                        </xsl:element>
+                        <xsl:element name="month">
+                            <xsl:value-of select="$month"/>
+                        </xsl:element>
+                        <xsl:element name="year">
+                            <xsl:value-of select="$year"/>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+        
+    </xsl:template>
+    
+</xsl:stylesheet>

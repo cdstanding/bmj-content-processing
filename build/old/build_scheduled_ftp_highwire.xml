@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="scheduled-ftp-to-highwire">
+    
+    <description>
+        
+        This build will check the folder '\\bmjprod1\Users\la_bmjprod\dev\bmj\uploadtoHighwire' for any article packages.
+        It is run as a scheduled task on BMJPROD1 every minute.
+        
+        These packages will be a folder with the a BMJ ID (bmj.a1234 for example) and this will contain a 'directives.xml',
+        'go.xml' and a ZIP which will contain an 'nlmxml' folder with the XML of the article, 'pdf' folder containing a 
+        PDF (if the article has one) and a 'graphics' folder containing graphics if the article has any.
+        
+        If a package folder is found this will set the condition 'article-folder-present'. Once this is set this will trigger
+        a pickup of the package and files in a sequential loop then send this to the Highwire FTP:
+        
+        Host: production.highwire.org
+        User: hwxbmj
+        
+        Once each package is sent, the copy in the 'UploadtoHighwire' folder is deleted.
+        
+        Properties for this build are in
+        
+        \\bmjprod1\Users\la_bmjprod\dev\bmj\build_scheduled_ftp_highwire.properties
+    </description>
+    
+    <target name="scheduled-ftp-to-highwire" depends="copy-to-highwire-ftp"/>
+    
+    <!--Directories for testing process-->
+    
+    <tstamp>
+        <format property="PUB-YEAR" pattern="yyyy"/>
+    </tstamp>
+    
+    <tstamp prefix="start"/>
+    <tstamp>
+        <format property="time-stamp" pattern="yyyyMMdd_HHmmss"/>
+    </tstamp>
+    
+    <property name="log-info" value="${log}/scheduled-ftp-highwire-${start.DSTAMP}-info.txt"/>
+    
+    <record name="${log-info}" append="yes" loglevel="info" action="start"/>
+    
+    <echo message="********************"/>
+    <echo message="START LOG"/>
+    <echo message="********************"/>
+    <echo message="START TIME ${start.TSTAMP}"/>
+    <echo message="********************"/>
+    
+    <!--Link to antcontrib libraries-->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="lib/xmltask.jar"/>
+    <taskdef resource="net/uworks/andariel/andariel.properties"/>
+    <taskdef name="xpath" classname="net.uworks.andariel.XPath" classpath="lib/andariel-1.2.3.jar"/>
+    
+    <target name="copy-to-highwire-ftp">
+        
+        <dirset dir="${uploadtoHighwire}" id="article-folders">
+            <include name="bmj*"/>
+        </dirset>
+        
+        <pathconvert refid="article-folders" property="article-folder-list"/>
+        <echo message="---------- This is the list of article folders: ${article-folder-list}"/>
+        
+        <!-- Check for the presence of article folder and set 'article-folder-present' condition if true -->
+        <condition property="article-folder-present" else="false">
+            <length string="${article-folder-list}" when="gt" length="0"/>
+        </condition>
+        <echo message="---------- Is an article folder present? ${article-folder-present}"/>
+        
+        
+        <if>
+            <isset property="article-folder-present"/>
+            <then>
+                
+                <!-- Transfer article packages to Highwire FTP -->
+                
+                <for list="${article-folder-list}" param="item" delimiter=";">
+                    <sequential>
+                        
+                        <var name="item-bmj-elocator" unset="true"/>
+                        
+                        <echo message="This is a single item: @{item}"/>
+                        
+                        <propertyregex 
+                            property="item-bmj-elocator" input="@{item}" 
+                            regexp=".*?(.+)(${uploadtoHighwire})(\\)(.+)" 
+                            replace="\4" 
+                            global="true"/>
+                        
+                        <echo message="This is the name of a single item: ${item-bmj-elocator}"/>
+                        
+                        <echo message="---------- Deleting any existing files from FTP"/>
+                        <ftp server="${ftp-hw-server}"
+                            userid="${ftp-hw-user}"
+                            password="${ftp-hw-pass}"
+                            remotedir="${ftp-hw-folder}"
+                            action="del">
+                            <fileset>
+                                <include name="${item-bmj-elocator}/*.*"/>
+                            </fileset>
+                        </ftp>
+                        
+                        <echo message="---------- Sending XML files to FTP"/>
+                        
+                        <ftp 
+                            server="${ftp-hw-server}"
+                            userid="${ftp-hw-user}"
+                            password="${ftp-hw-pass}"
+                            remotedir="${ftp-hw-folder}">
+                            <fileset dir="${uploadtoHighwire}">
+                                <include name="${item-bmj-elocator}/*.*"/>
+                            </fileset>
+                        </ftp>
+                        
+                        <!-- Added temporarily -->
+                        <ftp 
+                            server="${ftp-archive-server}"
+                            userid="${ftp-archive-user}"
+                            password="${ftp-archive-pass}"
+                            remotedir="/">
+                            <fileset dir="${uploadtoHighwire}">
+                                <include name="${item-bmj-elocator}/*.*"/>
+                            </fileset>
+                        </ftp>
+                        
+                    </sequential>
+                </for>
+                
+                <for list="${article-folder-list}" param="item" delimiter=";">
+                    <sequential>
+                        <delete verbose="true" includeemptydirs="true">
+                            <fileset dir="@{item}"/>
+                        </delete>
+                    </sequential>
+                </for>
+                
+                
+            </then>
+            
+        </if>
+        
+    </target>
+    
+    
+    
+</project>

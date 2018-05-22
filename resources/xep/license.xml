@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<license issuer="RenderX" issued="2004-10-28">
+   <licensee>
+      <person>Internal Development (jeroen@x-hive.com)</person>
+      <organization>X-Hive</organization>
+   </licensee>
+   <product name="XEP">
+      <limit name="server">1</limit>
+   </product>
+   <product name="DevKit">
+      <limit name="full">1</limit>
+   </product>
+<signature>iQBVAgUAQYEjZPz8zkdesEfDAQGqCwH/QxN4G16m48dehA3TY0RWMLv2nRnT4sPm
+FpZbYP8hlwCLX58tCne366vHA9v71iq0wKawxdxixw0esFDygorg/w===RaFf</signature></license>
